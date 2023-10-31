@@ -2,7 +2,8 @@
 
 ## Set up environments
 
-```conda create rag
+```
+conda create rag
 conda activate rag
 conda install python=3.10
 pip install -r requirements.txt
@@ -10,12 +11,14 @@ pip install -r requirements.txt
 
 ## LLM model
 
-```python llm.py
+```
+python llm.py
 ```
 
 ## Vector DB with specialized data
 
-```python pinecone_index.py
+```
+python pinecone_index.py
 python pinecone_test.py
 ```
 
@@ -23,18 +26,20 @@ python pinecone_test.py
 
 ## Run server API
 
-```python api.py
+```
+python api.py
 ```
 
 # Server deloyment
 
 ## DNS
 
-Point api._SITE_ to server IP
+Point api.__SITE__ to server IP
 
-## Install SSL certificate for api._SITE_
+## Install SSL certificate for api.__SITE__
 
-```sudo apt get nginx
+```
+sudo apt get nginx
 sudo git clone https://github.com/certbot/certbot /opt/letsencrypt
 sudo certbot --nginx -d api._SITE
 sudo certbot renew --dry-run
