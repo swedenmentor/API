@@ -6,6 +6,7 @@
 conda create rag
 conda activate rag
 conda install python=3.10
+sudo apt-get install python3-pip
 pip install -r requirements.txt
 ```
 
@@ -24,11 +25,16 @@ python pinecone_test.py
 
 ## RAG implementation (TODO)
 
+```
+python rag.py
+```
+
 ## Run server API
 
 ```
 python api.py
 ```
+The server runs at localhost:8000
 
 # Server deloyment
 
