@@ -1,5 +1,6 @@
 from torch import cuda
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+from dotenv import load_dotenv
 
 load_dotenv()
 
