@@ -1,3 +1,5 @@
+Demo: [chat.duhocsinh.se](https://chat.duhocsinh.se)
+
 # Testing on local machines
 
 ## Set up environments
