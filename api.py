@@ -1,7 +1,6 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
-from gpt2 import *
-
+from gpt3 import *
                                       
 app = Flask(__name__)
 cors = CORS(app)
