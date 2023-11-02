@@ -18,7 +18,7 @@ def get_companies():
                  + "Answer: "
         res = generate_text(prompt)
         response = res[0]["generated_text"]
-        response = response[len(prompt):]
+        response = response[len(prompt):]+"..."
         return response
     elif request.method == 'GET':
         return 'It is working'
