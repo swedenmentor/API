@@ -2,6 +2,7 @@ import torch
 import transformers
 
 model_id = 'Maykeye/TinyLLama-v0'
+#model_id = 'TheBloke/Llama-2-7B-fp16'
 
 # set quantization configuration to load large model with less GPU memory
 # this requires the `bitsandbytes` library
@@ -14,10 +15,12 @@ bnb_config = transformers.BitsAndBytesConfig(
 
 model = transformers.AutoModelForCausalLM.from_pretrained(
     model_id,
-    device_map='auto'
+    device_map='auto',
+    offload_folder='offload',
+    low_cpu_mem_usage=True,
+    torch_dtype=torch.bfloat16
 )
 model.eval()
-
 
 tokenizer = transformers.AutoTokenizer.from_pretrained(
     model_id
@@ -27,8 +30,6 @@ generate_text = transformers.pipeline(
     model=model, tokenizer=tokenizer,
     return_full_text=True,  # langchain expects the full text
     task='text-generation',
-    # we pass model parameters here too
-    temperature=0.0,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
     max_new_tokens=512,  # mex number of tokens to generate in the output
     repetition_penalty=1.1  # without this output begins repeating
 )
