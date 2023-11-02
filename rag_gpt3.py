@@ -45,3 +45,9 @@ vectorstore = Pinecone(index,
 generate_text = RetrievalQA.from_chain_type(llm=llm,
                                            chain_type='stuff',
 retriever=vectorstore.as_retriever())
+
+#######################
+# Result
+#######################
+# print(generate_text("What is quantum Physics?"))
+# {'query': 'What is quantum Physics?', 'result': " I don't know."}
