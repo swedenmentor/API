@@ -25,8 +25,8 @@ from datasets import load_dataset # jamescalam/llama-2-arxiv-papers-chunked for 
 
 # get API key from app.pinecone.io and environment from console
 pinecone.init(
-    api_key=os.environ.get('PINECONE_API_KEY') or 'fdf321c5-8907-4b13-90d6-9551fa764ec2',
-    environment=os.environ.get('PINECONE_ENVIRONMENT') or 'gcp-starter'
+    api_key=os.environ.get('PINECONE_API_KEY') or 'PINECONE_API_KEY',
+    environment=os.environ.get('PINECONE_ENVIRONMENT') or 'PINECONE_ENVIRONMENT'
 )
 
 
