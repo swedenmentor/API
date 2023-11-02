@@ -3,9 +3,8 @@
 ## Set up environments
 
 ```
-conda create rag
+conda create --name rag python=3.10
 conda activate rag
-conda install python=3.10
 sudo apt-get install python3-pip
 pip install -r requirements.txt
 ```
