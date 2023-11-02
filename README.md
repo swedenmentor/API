@@ -13,6 +13,8 @@ sudo apt-get install python3-pip
 pip install -r requirements.txt
 ```
 
+Rename `.env.example` to `.env` and provide the corresponding API keys.
+
 ## Run server API
 
 ```bash
