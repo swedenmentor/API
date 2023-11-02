@@ -13,25 +13,6 @@ sudo apt-get install python3-pip
 pip install -r requirements.txt
 ```
 
-## LLM model
-
-```bash
-python llm.py
-```
-
-## Vector DB with specialized data
-
-```bash
-python pinecone_index.py
-python pinecone_test.py
-```
-
-## RAG implementation (TODO)
-
-```bash
-python rag.py
-```
-
 ## Run server API
 
 ```bash
@@ -39,7 +20,7 @@ python api.py
 ```
 The server runs at localhost:8000
 
-# Server deloyment
+# Production deloyment
 
 ## DNS
 
