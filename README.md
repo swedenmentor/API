@@ -20,7 +20,7 @@ Rename `.env.example` to `.env` and provide the corresponding API keys.
 ```bash
 python api.py
 ```
-The server runs at localhost:8000
+The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you should see `It is working`.
 
 # Production deloyment
 
