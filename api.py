@@ -1,19 +1,6 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
-import torch
-import transformers
-
-model_id = 'Maykeye/TinyLLama-v0'
-model = transformers.AutoModelForCausalLM.from_pretrained(model_id,device_map='auto')
-tokenizer = transformers.AutoTokenizer.from_pretrained(model_id)
-generate_text = transformers.pipeline(
-    model=model, tokenizer=tokenizer,
-    return_full_text=True,
-    task='text-generation',
-    temperature=0.0,
-    max_new_tokens=512,
-    repetition_penalty=1.1
-)
+from llm import *
 
                                       
 app = Flask(__name__)
