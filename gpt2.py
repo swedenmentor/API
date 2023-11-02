@@ -8,7 +8,8 @@ model = GPT2LMHeadModel.from_pretrained(model_id,
                                         device_map='auto',
                                         offload_folder='offload',
                                         low_cpu_mem_usage=True)
-q = "What is quantum mechanics?"
+q = '''Question: What is quantum mechanics?
+Answer: '''
 
 generate_text = pipeline(
     model=model, tokenizer=tokenizer,
