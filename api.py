@@ -1,6 +1,6 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
-from llm import *
+from gpt2 import *
 
                                       
 app = Flask(__name__)
@@ -14,8 +14,11 @@ def get_companies():
         content_type = request.headers.get('Content-Type')
         if (content_type != 'application/json'):
             return content_type
-        res = generate_text(request.json['inputCode'])
+        prompt = "Question: " + request.json['inputCode'] + "\n" \
+                 + "Answer: "
+        res = generate_text(prompt)
         response = res[0]["generated_text"]
+        response = response[len(prompt):]
         return response
     elif request.method == 'GET':
         return 'It is working'
