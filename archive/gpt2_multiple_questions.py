@@ -7,7 +7,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_id)
 
 model = GPT2LMHeadModel.from_pretrained(model_id,
                                         device_map='auto',
-                                        offload_folder='offload',
+                                        offload_folder='archive',
                                         low_cpu_mem_usage=True)
 print('Write your question, type "quit" to exit')
 while True:
