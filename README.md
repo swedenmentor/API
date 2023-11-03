@@ -28,9 +28,9 @@ sh serve.sh
 ```
 The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you should see `It is working`.
 
-# Production deloyment
+# Production deployment
 
-Replace the occurences of `_SITE_` with intended domain.
+Replace the occurences of `_SITE_` with the intended domain.
 
 ## DNS
 
