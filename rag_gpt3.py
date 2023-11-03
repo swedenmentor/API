@@ -21,7 +21,12 @@ pinecone.init(
 index_name = 'llama-2-rag'  
 index = pinecone.Index(index_name)
 
-# embed model?? TA: I do not understand this part                                                
+#######################
+# Embed model                                               
+# maps sentences & paragraphs to a 384-dimensional dense vector space
+# and can be used for tasks like clustering or semantic search.
+#######################
+
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 embed_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
 device = 'cpu'
