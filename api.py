@@ -1,10 +1,10 @@
 from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 
-#from llm_models.llamma2 import *
-#from llm_models.gpt2 import *
-from llm_models.gpt3 import *
-#from llm_models.rag-gpt3 import *
+#from llmodels.llamma2 import *
+#from llmodels.gpt2 import *
+from llmodels.gpt3 import *
+#from llmodels.rag-gpt3 import *
                                       
 app = Flask(__name__)
 cors = CORS(app)
