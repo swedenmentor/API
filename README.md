@@ -22,23 +22,42 @@ Rename `.env.example` to `.env` and provide the corresponding API keys.
 ## Run server API
 
 ```bash
-python api.py
+sh serve.sh
 ```
 The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you should see `It is working`.
 
 # Production deloyment
 
+Replace the occurences of `_SITE_` with intended domain.
+
 ## DNS
 
-Point api.__SITE__ to server IP
+Point `api._SITE_` to server IP. Open port 8000 for TCP requests.
 
-## Install SSL certificate for api.__SITE__
+## Install SSL certificate for `api._SITE_`
 
 ```bash
 sudo apt get nginx
 sudo git clone https://github.com/certbot/certbot /opt/letsencrypt
-sudo certbot --nginx -d api._SITE
+sudo certbot --nginx -d api._SITE_
 sudo certbot renew --dry-run
 ```
+Copy the key file as `key.pem` and the cert file as `cert.pem` to the repo folder.
 
-## Deploy using Nginx and Gunicorn (TODO)
+The frontend server should also have SSL certificate.
+
+## Set up environments
+
+```bash
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.10
+sudo apt install python3-pip
+pip install -r requirements.txt
+```
+
+## Run server API
+```bash
+sh serve.sh
+```

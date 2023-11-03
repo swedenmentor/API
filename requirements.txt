@@ -12,4 +12,5 @@ flask
 flask-cors
 python-dotenv
 fsspec==2023.9.2
+gunicorn
 openai
