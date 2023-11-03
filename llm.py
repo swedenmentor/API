@@ -16,7 +16,7 @@ bnb_config = transformers.BitsAndBytesConfig(
 model = transformers.AutoModelForCausalLM.from_pretrained(
     model_id,
     device_map='auto',
-    offload_folder='offload',
+    offload_folder='archive',
     low_cpu_mem_usage=True,
     torch_dtype=torch.bfloat16
 )
