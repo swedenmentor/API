@@ -28,6 +28,8 @@ The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you
 
 # Production deloyment
 
+Replace the occurences of `_SITE_` with intended domain.
+
 ## DNS
 
 Point `api._SITE_` to server IP. Open port 8000 for TCP requests.
@@ -37,12 +39,23 @@ Point `api._SITE_` to server IP. Open port 8000 for TCP requests.
 ```bash
 sudo apt get nginx
 sudo git clone https://github.com/certbot/certbot /opt/letsencrypt
-sudo certbot --nginx -d api._SITE
+sudo certbot --nginx -d api._SITE_
 sudo certbot renew --dry-run
 ```
 Copy the key file as `key.pem` and the cert file as `cert.pem` to the repo folder.
 
-The frontend server should also have SSL certificate. 
+The frontend server should also have SSL certificate.
+
+## Set up environments
+
+```bash
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.10
+sudo apt install python3-pip
+pip install -r requirements.txt
+```
 
 ## Run server API
 ```bash
