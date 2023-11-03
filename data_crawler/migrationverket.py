@@ -37,7 +37,7 @@ def crawl(url, depth):
                 crawl(absolute_url, depth - 1)
 
 if __name__ == '__main__':
-    start_url = 'https://www.skatteverket.se/'
+    start_url = 'https://www.migrationverket.se/'
     max_depth = 10  # Set the maximum depth to control how many pages to crawl
 
     crawl(start_url, max_depth)
