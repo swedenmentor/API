@@ -22,7 +22,7 @@ Rename `.env.example` to `.env` and provide the corresponding API keys.
 ## Run server API
 
 ```bash
-python api.py
+sh serve.sh
 ```
 The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you should see `It is working`.
 
@@ -30,9 +30,9 @@ The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you
 
 ## DNS
 
-Point api.__SITE__ to server IP
+Point `api._SITE_` to server IP
 
-## Install SSL certificate for api.__SITE__
+## Install SSL certificate for `api._SITE_`
 
 ```bash
 sudo apt get nginx
@@ -40,5 +40,9 @@ sudo git clone https://github.com/certbot/certbot /opt/letsencrypt
 sudo certbot --nginx -d api._SITE
 sudo certbot renew --dry-run
 ```
+Copy the key file as `key.pem` and the cert file as `cert.pem` to the repo folder.
 
-## Deploy using Nginx and Gunicorn (TODO)
+## Run server API
+```bash
+sh serve.sh
+```
