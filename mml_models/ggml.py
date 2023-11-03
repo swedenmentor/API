@@ -9,7 +9,7 @@ import torch
 
 config = {'max_new_tokens': 256, 'repetition_penalty': 1.1, 'temperature': 0.1, 'stream': True}
 
-llm = AutoModelForCausalLM.from_pretrained(model_id,
+generate_text = AutoModelForCausalLM.from_pretrained(model_id,
                                            model_type="llama",
                                            model_file="llama-2-7b-chat.ggmlv3.q5_K_M.bin",
                                            lib='avx2', #for cpu use, comment if error
@@ -18,5 +18,5 @@ llm = AutoModelForCausalLM.from_pretrained(model_id,
                                            )
 
 # 'pipeline' execution
-res = llm(prompt, stream=False)
-print(res)
+#res = generate_text(prompt, stream=False)
+#print(res)
