@@ -4,7 +4,7 @@ from flask_cors import CORS, cross_origin
 #from llm_models.llamma2 import *
 #from llm_models.gpt2 import *
 from llm_models.gpt3 import *
-#from llm_models.rag_gpt3 import *
+#from llm_models.rag-gpt3 import *
                                       
 app = Flask(__name__)
 cors = CORS(app)
@@ -20,7 +20,7 @@ def get_companies():
         prompt = "Question: " + request.json['inputCode'] + "\n" \
                  + "Answer: "
         res = generate_text(prompt)
-        response = res if isinstance(res, str) else res[0]["generated_text"]
+        response = res if isinstance(res, str) else (res['result'] if hasattr(res, 'result') else res[0]["generated_text"])
         response = response[len(prompt):]+"..." if prompt in response else response
         return response
     elif request.method == 'GET':
