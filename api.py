@@ -26,5 +26,5 @@ def get_companies():
     elif request.method == 'GET':
         return 'It is working'
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=8000,debug=False,ssl_context=('cert.pem', 'key.pem')) #ssl_context='adhoc'
+#if __name__ == '__main__':
+#    app.run(host='0.0.0.0',port=8000,debug=False,ssl_context=('cert.pem', 'key.pem')) #ssl_context='adhoc'
