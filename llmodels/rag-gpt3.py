@@ -56,7 +56,7 @@ vectorstore = Pinecone(index,
                        text_field)  
 generate_text = RetrievalQA.from_chain_type(llm=llm,
                                            chain_type='stuff',
-retriever=vectorstore.as_retriever())
+                                           retriever=vectorstore.as_retriever())
 
 #######################
 # Result
