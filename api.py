@@ -18,10 +18,14 @@ def get_companies():
             return content_type
         prompt = "Question: " + request.json['inputCode'] + "\n" \
                  + "Answer: "
-        #res = generate_text(prompt)
-        #response = res if isinstance(res, str) else (res['result'] if hasattr(res, 'result') else res[0]["generated_text"])
         #response = response[len(prompt):]+"..." if prompt in response else response
-        return text_transform(generate_text(prompt))
+        response = app.response_class(
+            response=text_transform(generate_text(prompt)),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+        
     elif request.method == 'GET':
         return 'It is working'
 
