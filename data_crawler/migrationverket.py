@@ -10,6 +10,7 @@ def check(url):
     return (url in URL_list.keys())
 
 def crawl(url, depth):
+    # Check if the URL was already crawled and depth reaches 0
     if (depth == 0) or (check(url)):
         return
     global URL_list
@@ -23,11 +24,20 @@ def crawl(url, depth):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Process the page as needed (e.g., extract data, save to a file, etc.)
-
+        '''Some useful properties of soup (for Phong):
+            soup.p
+            # <p class="title"><b>The Dormouse's story</b></p>
+            soup.p['class']
+            # u'title'
+            soup.a
+            # <a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>
+            
+    For migrationsverket, contents are usually in p['normal'],h2['subheading'],ul['normal']
+    The title is stored in h1['heading']'''
         # Find all links on the page
         for link in soup.find_all('a'):
             href = link.get('href')
-
+            if href[0]=='#': continue
             # Join relative URLs with the base URL
             absolute_url = urljoin(url, href)
 
