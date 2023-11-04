@@ -5,11 +5,15 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
 # %% 2️⃣ Extracting HTML from the website
+def check(url):
+    global URL_list
+    return (url in URL_list.keys())
 
 def crawl(url, depth):
-    if depth == 0:
+    if (depth == 0) or (check(url)):
         return
-
+    global URL_list
+    URL_list[url]=True
     # Send an HTTP GET request to the URL
     response = requests.get(url)
 
@@ -37,9 +41,11 @@ def crawl(url, depth):
                 crawl(absolute_url, depth - 1)
 
 if __name__ == '__main__':
-    start_url = 'https://www.migrationverket.se/'
+    start_url = 'https://www.migrationsverket.se/'
     max_depth = 10  # Set the maximum depth to control how many pages to crawl
-
+    URL_list={}
     crawl(start_url, max_depth)
 
 
+
+# %%
