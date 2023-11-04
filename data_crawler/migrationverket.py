@@ -39,10 +39,10 @@ def crawl(url, depth):
         
         '''Here is some draft codes:
         # Extract content from p.normal and h2.subheading classes, store it in p_normal and h2_substring lists
-        # Example link: https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'''
-        if url=='https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html':
+        # Example link: https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Permits-for-family-members.html5'''
+        if url=='https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html':
             #Extract date of update otherwise date = crawling date
-            date_tag = soup.find('p', class_='ahjalpfunktioner')
+            date_tag = soup.find('p', class_='ahjalpfunktioner').find('time')
             if date_tag: date = date_tag.get_text()
             else: date = datetime.now().strftime("%Y-%m-%d")
 
@@ -76,7 +76,7 @@ def crawl(url, depth):
                 crawl(absolute_url, depth - 1)
 
 if __name__ == '__main__':
-    start_url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
+    start_url = 'https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html'
     max_depth = 10  # Set the maximum depth to control how many pages to crawl
     URL_list={}
     jsonl_file = 'migrationsverket.jsonl'
