@@ -24,19 +24,19 @@ def crawl(url, depth):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Process the page as needed (e.g., extract data, save to a file, etc.)
-        '''Some useful properties of soup (for Phong):
-            soup.p
-            # <p class="title"><b>The Dormouse's story</b></p>
-            soup.p['class']
-            # u'title'
-            soup.a
-            # <a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>
-            
-    For migrationsverket, contents are usually in p['normal'],h2['subheading'],ul['normal']
-    The title is stored in h1['heading']'''
+        ''' For migrationsverket, contents are usually in p['normal'],h2['subheading'],ul['normal']
+            The title is stored in h1['heading']'''
+        
+        '''Here is some draft codes:
+        # Extract content from p.normal and h2.subheading classes, store it in p_normal and h2_substring lists
+        # Example link: https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'''
+        if url=='https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html':
+            p_normal = [p.get_text() for p in soup.find_all('p', class_='normal')]
+            h2_subheading = [h2.get_text() for h2 in soup.find_all('h2', class_='subheading')]
         # Find all links on the page
         for link in soup.find_all('a'):
             href = link.get('href')
+            if href == None or len(href)==0: continue
             if href[0]=='#': continue
             # Join relative URLs with the base URL
             absolute_url = urljoin(url, href)
