@@ -22,7 +22,7 @@ def get_companies():
         #res = generate_text(prompt)
         #response = res if isinstance(res, str) else (res['result'] if hasattr(res, 'result') else res[0]["generated_text"])
         #response = response[len(prompt):]+"..." if prompt in response else response
-        return text_to_json(generate_text(prompt))
+        return text_transform(generate_text(prompt))
     elif request.method == 'GET':
         return 'It is working'
 
