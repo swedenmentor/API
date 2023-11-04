@@ -2,3 +2,6 @@
 __pycache__/
 .idea/
 .idea/workspace.xml
+cert.pem
+key.pem
+offload/
