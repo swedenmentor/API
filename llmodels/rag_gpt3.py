@@ -11,8 +11,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Step 1: LLM model      
 #######################
 llm = OpenAI(temperature=0, model_name='text-davinci-003')
-
-
+print("LLM: ready")
 
 #%% 2. Building the Knowledge Base
 #######################
@@ -26,7 +25,7 @@ pinecone.init(
 )
 index_name = 'llama-2-rag'  
 index = pinecone.Index(index_name)
-
+print("Pinecone DB: ready")
 
 #%% 3. Initializing the Embedding Pipeline (Hugging Face Sentence Transformer)
 #######################
@@ -43,6 +42,7 @@ embed_model = HuggingFaceEmbeddings(
     model_kwargs={'device': device},
     encode_kwargs={'device': device, 'batch_size': 32}
 )
+print("Embed model: ready")
 
 #%% 4. Initializing the RetrievalQA Component
 
@@ -61,6 +61,7 @@ generate_text = RetrievalQA.from_chain_type(llm=llm,
                                             chain_type='stuff',
                                             retriever=vectorstore.as_retriever(),
                                             return_source_documents=True)
+print("generate_text(): ready")
 
 #######################
 # Result
@@ -83,10 +84,11 @@ def text_transform(res):
     source_documents = []
     for document in res['source_documents']:
         doc = document.to_json()
-        source_documents.append(doc['kwargs']['metadata'])
+        if 'kwargs' in doc:
+            source_documents.append(doc['kwargs']['metadata'])
     return json.dumps({
         'result': res['result'],
         'source_documents': source_documents
     })
 
-#print(text_transform(generate_text("What is deep convolutional nets?")))
+print(text_transform(generate_text("What is deep convolutional nets?")))
