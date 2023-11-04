@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 
 #from llmodels.gpt3 import *
 from llmodels.rag_gpt3 import *
-from llmodels.rag_gpt4 import *
+#from llmodels.rag_gpt4 import *
                                       
 app = Flask(__name__)
 cors = CORS(app)
