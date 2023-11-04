@@ -91,4 +91,4 @@ def text_transform(res):
         'source_documents': source_documents
     })
 
-print(text_transform(generate_text("What is deep convolutional nets?")))
+#print(text_transform(generate_text("What is deep convolutional nets?")))
