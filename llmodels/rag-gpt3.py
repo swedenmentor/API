@@ -1,8 +1,11 @@
 from langchain.llms import OpenAI, HuggingFacePipeline
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 #%% 1. Initializing the LLM Model (GPT-3)
 #######################
 # Step 1: LLM model      
@@ -52,14 +55,38 @@ from langchain.chains import RetrievalQA
 
 text_field = 'text'  # field in metadata that contains text content                              
 vectorstore = Pinecone(index,
-                       embed_model.embed_query,
-                       text_field)  
+                       embed_model,
+                       text_field)
 generate_text = RetrievalQA.from_chain_type(llm=llm,
-                                           chain_type='stuff',
-                                           retriever=vectorstore.as_retriever())
+                                            chain_type='stuff',
+                                            retriever=vectorstore.as_retriever(),
+                                            return_source_documents=True)
 
 #######################
 # Result
 #######################
-# print(generate_text("What is quantum Physics?"))
-# {'query': 'What is quantum Physics?', 'result': " I don't know."}
+#res = generate_text("What is deep convolutional nets?")
+#print(res)
+##
+#{
+#    'query': 'What is deep convolutional nets?',
+#    'result': " I don't know.",
+#    'source_documents': [
+#        Document(
+#            page_content='abc',
+#            meta_data='{"source":"...url...","title":"abc"}'
+#        )
+#    ]
+#}
+
+def text_transform(res):
+    source_documents = []
+    for document in res['source_documents']:
+        doc = document.to_json()
+        source_documents.append(doc['kwargs']['metadata'])
+    return json.dumps({
+        'result': res['result'],
+        'source_documents': source_documents
+    })
+
+#print(text_transform(generate_text("What is deep convolutional nets?")))

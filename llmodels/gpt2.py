@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, GPT2LMHeadModel, pipeline, BitsAndBytesConfig
 import torch
+import json
 
 model_id = 'gpt2'
 tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -19,5 +20,11 @@ generate_text = pipeline(
     repetition_penalty=1.1,  # without this output begins repeating
     pad_token_id=tokenizer.eos_token_id
 )
-res = generate_text(q)
-print(res[0]["generated_text"])
+#res = generate_text(q)
+#print(res[0]["generated_text"])
+
+def text_transform(res):
+    return json.dumps({
+        'result': res[0]["generated_text"],
+        'source_documents': []
+    })

@@ -1,3 +1,5 @@
+torch
+torchvision
 transformers==4.30
 sentence-transformers==2.2.2
 pinecone-client==2.2.2

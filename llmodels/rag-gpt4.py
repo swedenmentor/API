@@ -66,3 +66,15 @@ generate_text = RetrievalQA.from_chain_type(llm=llm,
 #######################
 # print(generate_text("What is quantum Physics?"))
 # {'query': 'What is quantum Physics?', 'result': " I don't know."}
+
+def text_transform(res):
+    source_documents = []
+    for document in res['source_documents']:
+        doc = document.to_json()
+        source_documents.append(doc['kwargs']['metadata'])
+    return json.dumps({
+        'result': res['result'],
+        'source_documents': source_documents
+    })
+
+#print(text_transform(generate_text("What is deep convolutional nets?")))
