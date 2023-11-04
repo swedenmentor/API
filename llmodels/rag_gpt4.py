@@ -55,7 +55,7 @@ from langchain.chains import RetrievalQA
 
 text_field = 'text'  # field in metadata that contains text content
 vectorstore = Pinecone(index,
-                       embed_model.embed_query,
+                       embed_model,
                        text_field)
 generate_text = RetrievalQA.from_chain_type(llm=llm,
                                             chain_type='stuff',
