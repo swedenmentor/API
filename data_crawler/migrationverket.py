@@ -3,19 +3,28 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
-import datetime
+import json
+from datetime import datetime
 
-# %% 2️⃣ Extracting HTML from the website
+# Function to check if the url has been pre-crawled
 def check(url):
     global URL_list
     return (url in URL_list.keys())
 
+# Function to write data to a JSONL file
+def write_to_jsonl(data, filename):
+    with open(filename, 'a', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False)
+        file.write('\n')
+
+# %% 2️⃣ Extracting HTML from the website
 def crawl(url, depth):
     # Check if the URL was already crawled and depth reaches 0
-    if (depth == 0) or (check(url)):
-        return
+    if (depth == 0) or (check(url)): return
     global URL_list
     URL_list[url]=True
+    data ={}
+
     # Send an HTTP GET request to the URL
     response = requests.get(url)
 
@@ -30,10 +39,25 @@ def crawl(url, depth):
         
         '''Here is some draft codes:
         # Extract content from p.normal and h2.subheading classes, store it in p_normal and h2_substring lists
-        # Example link: https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'''
-        if url=='https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html':
+        # Example link: https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Permits-for-family-members.html5'''
+        if url=='https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html':
+            #Extract date of update otherwise date = crawling date
+            date_tag = soup.find('p', class_='ahjalpfunktioner').find('time')
+            if date_tag: date = date_tag.get_text()
+            else: date = datetime.now().strftime("%Y-%m-%d")
+
+            # Extract data from p normal class or h2_subheading class
             p_normal = [p.get_text() for p in soup.find_all('p', class_='normal')]
             h2_subheading = [h2.get_text() for h2 in soup.find_all('h2', class_='subheading')]
+            for count, content in enumerate(p_normal):
+                data = {
+                    "source": url,
+                    "chunk-id": str(count),
+                    "title": soup.title.string,
+                    "chunk": content,
+                    "updated": date
+                }
+                write_to_jsonl(data, jsonl_file)
         # Find all links on the page
         for link in soup.find_all('a'):
             href = link.get('href')
@@ -52,67 +76,17 @@ def crawl(url, depth):
                 crawl(absolute_url, depth - 1)
 
 if __name__ == '__main__':
-    start_url = 'https://www.migrationsverket.se/'
+    start_url = 'https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html'
     max_depth = 10  # Set the maximum depth to control how many pages to crawl
     URL_list={}
+    jsonl_file = 'migrationsverket.jsonl'
+    
+    # Clear existing content in the JSONL file
+    with open(jsonl_file, 'w') as file:
+        file.write('')
+
     crawl(start_url, max_depth)
 
 
 
-# %% test area
-
-import requests
-from bs4 import BeautifulSoup
-import json
-
-
-# Define a function to crawl and extract data
-def crawl_website(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            # Extract title from the page
-            title = soup.title.text.strip()
-
-            # Extract all paragraphs between <p> tags as chunks
-            paragraphs = soup.find_all(['p','h1','h2'])
-            chunks = [p.get_text().strip() for p in paragraphs]
-
-            # Construct and save data in the specified format
-            data = []
-            for chunk_id, chunk in enumerate(chunks):
-                entry = {
-                    "source": url,
-                    "chunk-id": str(chunk_id),
-                    "title": title,
-                    "chunk": chunk,
-                    "updated": datetime.date.today().strftime('%Y-%m-%d') # Use the data crawling date as the update date
-                }
-                data.append(entry)
-
-            return data
-        else:
-            print(f"Failed to fetch data from {url}. Status Code: {response.status_code}")
-            return []
-    except Exception as e:
-        print(f"An error occurred while processing {url}: {str(e)}")
-        return []
-
-
-
-
-
-
-# Crawl and extract data from each website
-all_data = []
-for website in websites:
-    data = crawl_website(website)
-    all_data.extend(data)
-
-# Save the extracted data in JSON format
-with open("website_data.json", "w") as json_file:
-    json.dump(all_data, json_file, indent = 2)
-
-print("Data extraction and saving completed.")
+# %%
