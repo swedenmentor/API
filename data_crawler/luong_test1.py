@@ -6,7 +6,8 @@ import datetime                                     # for dealing with dates and
 import jsonlines                                    # for handling JSONL format
 from urllib.parse import urlparse, urljoin          # for URL parsing and joining
 from googletrans import Translator                  # for text translation using Google Translate API
-from langdetect import detect, LangDetectException  # for language detection
+#from langdetect import detect, LangDetectException  # for language detection
+import json
 
 #%% 2️⃣ Define function crawl data from the website
 def word_count(text):
@@ -35,11 +36,10 @@ class Crawler:
 
     def write_to_file(self, output_file):
         if self.data_buffer:
-            with jsonlines.open(output_file, mode = 'w' if not self.data_buffer else 'a') as writer:
+            with jsonlines.open(output_file, mode = 'w') as file:
                 for entry in self.data_buffer:
-                    if entry is not None:
-                        writer.write(entry)
-            self.data_buffer.clear()
+                    json_record = json.dumps(data_dict)
+                    file.write(json_record + '\n')
 
     def translate_text(self, text):
         chunks = []
