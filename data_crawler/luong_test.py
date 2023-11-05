@@ -6,6 +6,7 @@ import datetime                                 # for dealing with dates and tim
 import jsonlines                                # for handling JSONL format
 from urllib.parse import urlparse, urljoin      # for URL parsing and joining
 from googletrans import Translator              # for text translation using Google Translate API
+from langdetect import detect                   # for language detection
 
 #%% 2️⃣ Define function crawl data from the website
 def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
@@ -33,7 +34,7 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         - Crawling is done using the requests and BeautifulSoup libraries.
         - For each visited page, it extracts the title, combined text content of all paragraphs
           ('p', 'h1', 'h2' tags), the page url, and the date of the page (current date used as fallback).
-        - Chunk will be translated from Swedish to English
+        - Chunk will be translated from any language to English, optional translate to Vietnamese
         - Extracted information is stored as a single entry of a jsonlines file at `output_file`.
         - It enforces a 1-second delay between requests to avoid overloading the server.
     """
@@ -61,15 +62,25 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         # Combine all paragraphs, h1 and h2 contents into a single chunk
         chunks = " ".join([p.get_text().strip() for p in paragraphs])
 
-        # Translate chunk from Swedish to English
+        # Detect language of the chunk
+        detected_lang = detect(chunks)
+
+        # Translate chunk to English
         translator = Translator()
-        chunks_en = translator.translate(chunks, src='sv', dest='en')   # specific src and dest are optional
+        # If detected language is not English, translate to English
+        if detected_lang != 'en':
+            chunks_en = translator.translate(chunks, src = detected_lang, dest = 'en').text
+        else:
+            chunks_en = chunks
+
+        #chunks_vn = translator.translate(chunks, src='en', dest='vn')   # optional: translate to Vietnamese
 
         entry = {
             "source": url,
             "title": title,
             "chunk": chunks,
-            "chunk_en": chunks_en.text,  # add translated chunks to entry
+            "chunk_en": chunks_en,  # add translated chunks to entry
+            #"chunk_vn": chunks_vn,  # add translated chunks to entry
             "updated": date
         }
         with jsonlines.open(output_file, mode='a') as writer:
