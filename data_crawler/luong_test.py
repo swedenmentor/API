@@ -1,3 +1,4 @@
+#%% 1️⃣ Loading packages
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -5,22 +6,34 @@ import datetime
 import jsonlines
 from urllib.parse import urlparse, urljoin
 
-def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=3):
+#%% 2️⃣ Define function crawl data from the website
+def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
     """
-    Crawls a website and extracts information from each page.
+    Crawls a specified website for all of its linked pages up to a maximum depth and stores the extracted
+    information into a file. It uses a set of visited URLs to avoid repeating the crawling process for the same page.
+    It crawls the website using a depth-first search mechanism.
 
-    :param url: The URL of the website to crawl.
-    :type url: str
-    :param output_file: The file path where the extracted information will be saved.
-    :type output_file: str
-    :param visited_urls: A set of visited URLs to avoid duplicate crawling.
-    :type visited_urls: set, optional
-    :param depth: The current depth of the crawling process.
-    :type depth: int, optional
-    :param max_depth: The maximum depth for crawling. Default value is 3.
-    :type max_depth: int, optional
-    :return: None
-    :rtype: None
+    Parameters:
+        url (str): The URL of the website to be crawled.
+        output_file (str): The path of the output file where the extracted information will be saved.
+        visited_urls (set, optional): A set of URLs that the crawler has already visited. Defaults to None.
+        depth (int, optional): The current depth of the crawl. Defaults to 1.
+        max_depth (int, optional): The maximum depth to crawl the website. Defaults to 5.
+
+    Returns:
+        None
+
+    Raises:
+        RequestException: If there was an ambiguous exception while handling the request.
+        HTTPError: If an HTTP error occurred.
+        ConnectionError: If a network problem occurred.
+
+    Note:
+        - Crawling is done using the requests and BeautifulSoup libraries.
+        - For each visited page, it extracts the title, combined text content of all paragraphs
+          ('p', 'h1', 'h2' tags), the page url, and the date of the page (current date used as fallback).
+        - Extracted information is stored as a single entry of a jsonlines file at `output_file`.
+        - It enforces a 1-second delay between requests to avoid overloading the server.
     """
     try:
         if visited_urls is None:
@@ -75,13 +88,17 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=3):
         print(f"An error occurred while processing {url}: {str(e)}")
 
 
+#%% 3️⃣ Crawl data and save to jsonl file
+
 if __name__ == '__main__':
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
-    output_file = 'data_crawler/example-data-chunked/data1.jsonl'
-    crawl_website(url, output_file, max_depth=3)
+    output_file = 'data_crawler/example-data-chunked/migrationverket.jsonl'
+    crawl_website(url, output_file, max_depth=5)
 
 
 
+
+#%% 4️⃣ Archive code
 # Break each paragraph into a chunk
 
 # import time
