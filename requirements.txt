@@ -17,3 +17,4 @@ openai
 bs4
 requests
 jsonlines
+googletrans==4.0.0-rc1

@@ -1,10 +1,11 @@
 #%% 1️⃣ Loading packages
-import time
-import requests
-from bs4 import BeautifulSoup
-import datetime
-import jsonlines
-from urllib.parse import urlparse, urljoin
+import time                                     # for time-related tasks
+import requests                                 # for making HTTP requests
+from bs4 import BeautifulSoup                   # for web scraping, parsing HTML
+import datetime                                 # for dealing with dates and times
+import jsonlines                                # for handling JSONL format
+from urllib.parse import urlparse, urljoin      # for URL parsing and joining
+from googletrans import Translator              # for text translation using Google Translate API
 
 #%% 2️⃣ Define function crawl data from the website
 def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
@@ -32,6 +33,7 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         - Crawling is done using the requests and BeautifulSoup libraries.
         - For each visited page, it extracts the title, combined text content of all paragraphs
           ('p', 'h1', 'h2' tags), the page url, and the date of the page (current date used as fallback).
+        - Chunk will be translated from Swedish to English
         - Extracted information is stored as a single entry of a jsonlines file at `output_file`.
         - It enforces a 1-second delay between requests to avoid overloading the server.
     """
@@ -48,7 +50,6 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
             return
         visited_urls.add(url)
         soup = BeautifulSoup(response.text, 'html.parser')
-
         date_tag = soup.find('p', class_ = 'ahjalpfunktioner').find('time')
         if date_tag:
             date = date_tag.get_text()
@@ -56,14 +57,19 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
             date = datetime.now().strftime("%Y-%m-%d")
         title = soup.title.text.strip()
         paragraphs = soup.find_all(['p', 'h1', 'h2'])
+
         # Combine all paragraphs, h1 and h2 contents into a single chunk
         chunks = " ".join([p.get_text().strip() for p in paragraphs])
+
+        # Translate chunk from Swedish to English
+        translator = Translator()
+        chunks_en = translator.translate(chunks, src='sv', dest='en')   # specific src and dest are optional
 
         entry = {
             "source": url,
             "title": title,
             "chunk": chunks,
-            # "updated": datetime.date.today().strftime('%Y-%m-%d')
+            "chunk_en": chunks_en.text,  # add translated chunks to entry
             "updated": date
         }
         with jsonlines.open(output_file, mode='a') as writer:
