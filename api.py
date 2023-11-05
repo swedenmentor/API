@@ -14,17 +14,21 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 def get_companies():
     if request.method == 'POST':
         content_type = request.headers.get('Content-Type')
-        if (content_type != 'application/json'):
-            return content_type
-        prompt = "Question: " + request.json['inputCode'] + "\n" \
-                 + "Answer: "
-        #response = response[len(prompt):]+"..." if prompt in response else response
-        response = app.response_class(
+        if (content_type != 'application/json'
+            or 'messages' not in request.json
+            or len(request.json['messages']) == 0):
+            return app.response_class(
+                response="Invalid request",
+                status=500
+            )
+        
+        prompt = request.json['messages'][-1]['content']
+        
+        return app.response_class(
             response=text_transform(generate_text(prompt)),
             status=200,
             mimetype='application/json'
         )
-        return response
         
     elif request.method == 'GET':
         return 'It is working'
