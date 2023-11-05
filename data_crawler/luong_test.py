@@ -15,7 +15,7 @@ def check(url):
     global visited_urls
     return (url in visited_urls)
 
-def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
+def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5, URL_dict=None):
     """
     Crawls a specified website for all of its linked pages up to a maximum depth and stores the extracted
     information into a file. It uses a set of visited URLs to avoid repeating the crawling process for the same page.
@@ -47,7 +47,7 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
     try:
         if depth > max_depth:
             return
-        if url in visited_urls:
+        if check(url):
             return
         response = requests.get(url)
         if not response.status_code == 200:
@@ -68,15 +68,15 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         chunks = " ".join([p.get_text().strip() for p in paragraphs])
 
         # Detect language of the chunk
-        detected_lang = detect(chunks)
-
-        # Translate chunk to English
-        translator = Translator()
-        # If detected language is not English, translate to English
-        if detected_lang != 'en':
-            chunks_en = translator.translate(chunks, src = detected_lang, dest = 'en').text
-        else:
-            chunks_en = chunks
+        try:
+            detected_lang = detect(chunks)
+            translator = Translator()
+            if detected_lang != 'en':
+                chunks_en = translator.translate(chunks, src = detected_lang, dest = 'en').text
+            else:
+                chunks_en = chunks
+        except (TypeError, LangDetectException):
+            print('Could not detect or translate language!')
 
         #chunks_vn = translator.translate(chunks, src='en', dest='vn')   # optional: translate to Vietnamese
 
