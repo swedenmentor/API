@@ -1,92 +1,187 @@
-# %% 1️⃣ Loading packages
-# load packages need for crawling data
-import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin
-import json
-from datetime import datetime
+#%% 1️⃣ Loading packages
+import time                                         # for time-related tasks
+import requests                                     # for making HTTP requests
+from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
+import datetime                                     # for dealing with dates and times
+import jsonlines                                    # for handling JSONL format
+from urllib.parse import urlparse, urljoin          # for URL parsing and joining
+from googletrans import Translator                  # for text translation using Google Translate API
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# Function to check if the url has been pre-crawled
+#from langdetect import detect, LangDetectException  # for language detection
+
+#%% 2️⃣ Define function crawl data from the website
+def word_count(text):
+    return len(text.split())
+
+def chunk_text(input_text):
+    # This part is deposited for writing chunk_text from Langchain library
+    '''# With text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size = 1000,
+        chunk_overlap  = 200,
+        length_function = len,
+        is_separator_regex = False
+    )'''
+    return text_splitter.split_text(input_text) # Return a list of strings with overlapping
+
+
 def check(url):
     global URL_list
     return (url in URL_list.keys())
 
-# Function to write data to a JSONL file
-def write_to_jsonl(data, filename):
-    with open(filename, 'a', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False)
-        file.write('\n')
+def neareast_next_full_stop(text):
+    pos = text.rfind('.')
+    if pos != -1:
+        return pos+1
+    else:
+        return len(text)
 
-# %% 2️⃣ Extracting HTML from the website
-def crawl(url, depth):
-    # Check if the URL was already crawled and depth reaches 0
-    if (depth == 0) or (check(url)): return
-    global URL_list
-    URL_list[url]=True
-    data ={}
 
-    # Send an HTTP GET request to the URL
-    response = requests.get(url)
+class Crawler:
+    """
+    A Crawler class that crawls through websites and performs translation on the collected data.
 
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
-        # Parse the HTML content of the page
-        soup = BeautifulSoup(response.text, 'html.parser')
+    Attributes:
+    visited_urls (set): A set to hold the URLs already visited by the crawler.
+    translator (Translator): A Translator object to perform translations.
+    """
+    def __init__(self):
+        self.translator = Translator()
+        self.data_buffer = []
 
-        # Process the page as needed (e.g., extract data, save to a file, etc.)
-        ''' For migrationsverket, contents are usually in p['normal'],h2['subheading'],ul['normal']
-            The title is stored in h1['heading']'''
-        
-        '''Here is some draft codes:
-        # Extract content from p.normal and h2.subheading classes, store it in p_normal and h2_substring lists
-        # Example link: https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Permits-for-family-members.html5'''
-        if url=='https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html':
-            #Extract date of update otherwise date = crawling date
-            date_tag = soup.find('p', class_='ahjalpfunktioner').find('time')
-            if date_tag: date = date_tag.get_text()
-            else: date = datetime.now().strftime("%Y-%m-%d")
+    def write_to_file(self, output_file):
+        if self.data_buffer:
+            with jsonlines.open(output_file, mode = 'a') as file:
+                for entry in self.data_buffer:
+                    file.write(entry)
+                self.data_buffer = []
 
-            # Extract data from p normal class or h2_subheading class
-            p_normal = [p.get_text() for p in soup.find_all('p', class_='normal')]
-            h2_subheading = [h2.get_text() for h2 in soup.find_all('h2', class_='subheading')]
-            for count, content in enumerate(p_normal):
-                data = {
-                    "source": url,
-                    "chunk-id": str(count),
-                    "title": soup.title.string,
-                    "chunk": content,
-                    "updated": date
-                }
-                write_to_jsonl(data, jsonl_file)
-        # Find all links on the page
-        for link in soup.find_all('a'):
-            href = link.get('href')
-            if href == None or len(href)==0: continue
-            if href[0]=='#': continue
-            # Join relative URLs with the base URL
-            absolute_url = urljoin(url, href)
-
-            # Parse the absolute URL to extract the domain
-            domain = urlparse(absolute_url).netloc
-            original_domain = urlparse(url).netloc
-
-            # Check if the link is within the same domain
-            if domain == original_domain:
-                # Recursively crawl the linked page
-                crawl(absolute_url, depth - 1)
-
-if __name__ == '__main__':
-    start_url = 'https://www.migrationsverket.se/English/Private-individuals/Working-in-Sweden/Nyhetsarkiv/2023-11-01-The-increased-maintenance-requirement-for-work-permits-is-now-in-force.html'
-    max_depth = 10  # Set the maximum depth to control how many pages to crawl
-    URL_list={}
-    jsonl_file = 'migrationsverket.jsonl'
     
-    # Clear existing content in the JSONL file
-    with open(jsonl_file, 'w') as file:
-        file.write('')
+        return
+    def translate_text(self, text):
+        '''chunks = []
+        words = text.split(" ")
+        temp = ""
+        for word in words:
+            temp += word + " "
+            if len(temp.split()) >= 300:
+                temp = temp.rsplit(' ', 1)[0]
+                chunks.append(temp)
+                temp = word + " "
+        if temp.strip():
+            chunks.append(temp.strip())
 
-    crawl(start_url, max_depth)
+        output = []
+        for chunk in chunks:
+            detected = self.translator.detect(chunk)
+            if detected.lang != 'en':
+                translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
+                output.append(translated_chunk)
+            else:
+                output.append(chunk)
+        return ' '.join(output)'''
+        output = []
+        for chunk in chunk_text(text):
+            detected = self.translator.detect(chunk)
+            if detected.lang != 'en':
+                translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
+                output.append(translated_chunk)
+            else:
+                output.append(chunk)
+        return output
+
+
+    def crawl_website(self, url, output_file, depth=5):
+        """
+        Crawls a website starting from a specified URL and extracts information,
+        creating an entry for each visited webpage and writing the information to a file.
+        The crawl depth is restricted to a configurable maximum depth.
+
+        If exceptions occur during the requests, they get handled and
+        an error message is printed to the console.
+
+        :param url (str): The starting URL to crawl from.
+        :param output_file (str): The path of the file to which extracted information
+                            will be written.
+        :param depth (int): The remaining allowing depth for recursion of crawling
+
+        :return: None
+
+        :raises:
+            requests.exceptions.RequestException: When a request exception occurs.
+            requests.exceptions.HTTPError: When an HTTP error occurs.
+            requests.exceptions.ConnectionError: When a connection error occurs.
+            Exception: For any other unhandled exceptions.
+        """
+        if (depth == 0) or (check(url)): return
+        global URL_list
+        URL_list[url]=True
+        try:
+            response = requests.get(url)
+            if not response.status_code == 200:
+                print(f'Non success status for url {url}')
+                return
+            soup = BeautifulSoup(response.text, 'html.parser')
+            date_tag = soup.find('p', class_='ahjalpfunktioner')
+            if date_tag:
+                time_tag = date_tag.find('time')
+                date = time_tag.get_text() if time_tag else datetime.datetime.now().strftime("%Y-%m-%d")
+            else:
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+            title = soup.title.text.strip()
+            title = self.translate_text(title)
+            paragraphs = soup.find_all(['p', 'h1', 'h2'])
+
+            text = "\n".join([p.get_text().strip() for p in paragraphs])
+            chunks = self.translate_text(text)
+
+            entry = {
+                "source": url,
+                "title": title,
+                "chunk": chunks,
+                # "chunk_en": chunk_en,
+                "updated": date
+            }
+            self.data_buffer.append(entry)
+            self.write_to_file(output_file)
+
+            links = soup.find_all('a')
+            for link in links:
+                href = link.get('href')
+                if href and href.startswith('http'):
+                    new_url = href
+                else:
+                    new_url = urljoin(url, href)
+                if new_url not in self.visited_urls:
+                    time.sleep(1)
+                    self.crawl_website(new_url, output_file, depth=depth - 1)
+
+        except requests.exceptions.RequestException as err:
+            print(f"RequestException: {err}")
+        except requests.exceptions.HTTPError as errh:
+            print(f"HTTPError: {errh}")
+        except requests.exceptions.ConnectionError as errc:
+            print(f"ConnectionError: {errc}")
+        except Exception as e:
+            print(f"An error occurred while processing {url}: {str(e)}")
 
 
 
-# %%
+
+#%% 3️⃣ Crawl data and save to jsonl file
+if __name__ == '__main__':
+    # Initialize models and variables
+    crawler = Crawler()
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size = 1000, chunk_overlap  = 200,
+        length_function = len, is_separator_regex = False)
+    url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
+    output_file = 'migrationverket.jsonl'
+    URL_list={}
+    # Crawling
+    crawler.crawl_website(url, output_file=output_file, depth=2)
+
+    # # make sure to write remaining data to file
+    # if crawler.data_buffer:
+    #     crawler.write_to_file(output_file)
