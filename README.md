@@ -1,6 +1,6 @@
 Demo: [chat.duhocsinh.se](https://chat.duhocsinh.se)
 
-Frontend repo: [tuananhdao/chat.duhocsinh.ui](https://github.com/tuananhdao/chat.duhocsinh.webUI)
+Frontend repo: [tuananhdao/chat.duhocsinh.webUI](https://github.com/tuananhdao/chat.duhocsinh.webUI)
 
 # Roadmap
 - Pinecone-GPT3: ChatGPT API for LLM, Pinecone for Vector DB
