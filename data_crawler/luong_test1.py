@@ -7,7 +7,6 @@ import jsonlines                                    # for handling JSONL format
 from urllib.parse import urlparse, urljoin          # for URL parsing and joining
 from googletrans import Translator                  # for text translation using Google Translate API
 #from langdetect import detect, LangDetectException  # for language detection
-import json
 
 #%% 2️⃣ Define function crawl data from the website
 def word_count(text):
@@ -155,9 +154,9 @@ if __name__ == '__main__':
     crawler = Crawler()
 
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
-    output_file = 'data_crawler/example-data-chunked/migrationverket.jsonl'
+    output_file = 'migrationverket.jsonl'
 
-    crawler.crawl_website(url, output_file=output_file, max_depth=5)
+    crawler.crawl_website(url, output_file=output_file, max_depth=2)
 
     # # make sure to write remaining data to file
     # if crawler.data_buffer:
