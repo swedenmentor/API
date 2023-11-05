@@ -36,10 +36,10 @@ class Crawler:
 
     def write_to_file(self, output_file):
         if self.data_buffer:
-            with jsonlines.open(output_file, mode = 'w') as file:
+            with jsonlines.open(output_file, mode = 'a') as file:
                 for entry in self.data_buffer:
-                    json_record = json.dumps(data_dict)
-                    file.write(json_record + '\n')
+                    file.write(entry)
+                self.data_buffer = []
 
     def translate_text(self, text):
         chunks = []
@@ -125,6 +125,7 @@ class Crawler:
                 "updated": date
             }
             self.data_buffer.append(entry)
+            self.write_to_file(output_file)
 
             links = soup.find_all('a')
             for link in links:
@@ -158,6 +159,6 @@ if __name__ == '__main__':
 
     crawler.crawl_website(url, output_file=output_file, max_depth=5)
 
-    # make sure to write remaining data to file
-    if crawler.data_buffer:
-        crawler.write_to_file(output_file)
+    # # make sure to write remaining data to file
+    # if crawler.data_buffer:
+    #     crawler.write_to_file(output_file)
