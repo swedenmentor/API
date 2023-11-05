@@ -9,6 +9,16 @@ from googletrans import Translator                  # for text translation using
 from langdetect import detect, LangDetectException  # for language detection
 
 #%% 2️⃣ Define function crawl data from the website
+def word_count(text):
+    return len(text.split())
+
+def neareast_next_full_stop(text):
+    pos = text.rfind('.')
+    if pos != -1:
+        return pos+1
+    else:
+        return len(text)
+
 
 class Crawler:
     """
@@ -32,10 +42,28 @@ class Crawler:
             self.data_buffer.clear()
 
     def translate_text(self, text):
-        detected = self.translator.detect(text)
-        if detected.lang != 'en':
-            return self.translator.translate(text, src=detected.lang, dest='en').text
-        return text
+        chunks = []
+        words = text.split(" ")
+        temp = ""
+        for word in words:
+            temp += word + " "
+            if len(temp.split()) >= 300:
+                temp = temp.rsplit(' ', 1)[0]
+                chunks.append(temp)
+                temp = word + " "
+        if temp.strip():
+            chunks.append(temp.strip())
+
+        output = []
+        for chunk in chunks:
+            detected = self.translator.detect(chunk)
+            if detected.lang != 'en':
+                translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
+                output.append(translated_chunk)
+            else:
+                output.append(chunk)
+        return ' '.join(output)
+
 
     def crawl_website(self, url, output_file, depth=1, max_depth=5):
         """
@@ -86,32 +114,17 @@ class Crawler:
             title = soup.title.text.strip()
             paragraphs = soup.find_all(['p', 'h1', 'h2'])
 
-            chunks = [p.get_text().strip() for p in paragraphs]
-            chunks_en = self.translate_text(chunks)
+            text = "\n".join([p.get_text().strip() for p in paragraphs])
+            chunks = self.translate_text(text)
 
-            # chunks = "\n".join([p.get_text().strip() for p in paragraphs])
-            # chunks_en = self.translate_text(chunks)
-
-            # entry = {
-            #     "source": url,
-            #     "title": title,
-            #     "chunk": chunks,
-            #     "chunk_en": chunks_en,
-            #     "updated": date
-            # }
-
-            for chunk_id, chunk in enumerate(chunks):
-                entry = {
-                    "source": url,
-                    "chunk-id": str(chunk_id),
-                    "title": title,
-                    "chunk": chunk,
-                    "chunk_en": chunks_en,
-                    "updated": date
-                    }
-                self.data_buffer.append(entry)
-
-
+            entry = {
+                "source": url,
+                "title": title,
+                "chunk": chunks,
+                # "chunk_en": chunk_en,
+                "updated": date
+            }
+            self.data_buffer.append(entry)
 
             links = soup.find_all('a')
             for link in links:
