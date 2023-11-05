@@ -9,6 +9,12 @@ from googletrans import Translator              # for text translation using Goo
 from langdetect import detect                   # for language detection
 
 #%% 2️⃣ Define function crawl data from the website
+
+# Function to check if the url has been pre-crawled
+def check(url):
+    global visited_urls
+    return (url in visited_urls)
+
 def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
     """
     Crawls a specified website for all of its linked pages up to a maximum depth and stores the extracted
@@ -39,8 +45,6 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         - It enforces a 1-second delay between requests to avoid overloading the server.
     """
     try:
-        if visited_urls is None:
-            visited_urls = set()
         if depth > max_depth:
             return
         if url in visited_urls:
@@ -49,6 +53,7 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
         if not response.status_code == 200:
             print(f'Non success status for url {url}')
             return
+
         visited_urls.add(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         date_tag = soup.find('p', class_ = 'ahjalpfunktioner').find('time')
@@ -108,6 +113,7 @@ def crawl_website(url, output_file, visited_urls=None, depth=1, max_depth=5):
 #%% 3️⃣ Crawl data and save to jsonl file
 
 if __name__ == '__main__':
+    visited_urls = set()
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
     output_file = 'data_crawler/example-data-chunked/migrationverket.jsonl'
     crawl_website(url, output_file, max_depth=5)
