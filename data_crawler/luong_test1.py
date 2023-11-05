@@ -4,7 +4,7 @@ import requests                                     # for making HTTP requests
 from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
 import datetime                                     # for dealing with dates and times
 import jsonlines                                    # for handling JSONL format
-from urllib.parse import urlparse, urljoin          # for URL parsing and joining
+from urllib.parse import urljoin                    # for URL parsing and joining
 from googletrans import Translator                  # for text translation using Google Translate API
 #from langdetect import detect, LangDetectException  # for language detection
 
@@ -156,9 +156,8 @@ if __name__ == '__main__':
     max_depth = 5
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
     output_file = 'migrationverket.jsonl'
-
     crawler.crawl_website(url, output_file=output_file, max_depth=max_depth)
 
-    # # make sure to write remaining data to file
-    # if crawler.data_buffer:
-    #     crawler.write_to_file(output_file)
+    # output_file = 'chiaselund.jsonl'
+    # url1 = 'https://www.chiaselund.com/post/_p123'
+    # crawler.crawl_website(url1, output_file = output_file, max_depth = 2)
