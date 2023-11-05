@@ -111,6 +111,7 @@ class Crawler:
                 date = datetime.datetime.now().strftime("%Y-%m-%d")
 
             title = soup.title.text.strip()
+            title = self.translate_text(title)
             paragraphs = soup.find_all(['p', 'h1', 'h2'])
 
             text = "\n".join([p.get_text().strip() for p in paragraphs])
@@ -152,11 +153,11 @@ class Crawler:
 #%% 3️⃣ Crawl data and save to jsonl file
 if __name__ == '__main__':
     crawler = Crawler()
-
+    max_depth = 5
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
     output_file = 'migrationverket.jsonl'
 
-    crawler.crawl_website(url, output_file=output_file, max_depth=2)
+    crawler.crawl_website(url, output_file=output_file, max_depth=max_depth)
 
     # # make sure to write remaining data to file
     # if crawler.data_buffer:
