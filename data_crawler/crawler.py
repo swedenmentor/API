@@ -197,7 +197,7 @@ class Crawler:
         """
         urls = []
         if input_file is not None:
-            with open(file_path, 'r') as f:
+            with open(input_file, 'r') as f:
                 urls = [line.strip() for line in f]
         else:
             urls = list(self.visited_urls)
