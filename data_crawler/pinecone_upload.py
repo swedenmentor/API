@@ -1,4 +1,4 @@
-#%% 1. Import libraries
+#%% 1.Import libraries
 import os                                                           # Functions for interacting with the operating system
 import pinecone                                                     # Vector database for similarity search and ranking
 import pandas as pd                                                 # Data manipulation and analysis library
@@ -7,7 +7,7 @@ from torch import cuda                                              # PyTorch's 
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings  # Provides Hugging Face's transformer models for text embeddings
 from dotenv import load_dotenv                                      # Reads .env files and sets environment variables
 
-#%% 2. Set parameters and environment variables
+#%% 2.Set parameters and environment variables
 load_dotenv()
 
 # get API key from app.pinecone.io and environment from console
@@ -33,7 +33,7 @@ docs = [
 
 embeddings = embed_model.embed_documents(docs)
 
-#%% 3. Create new database in Pinecone
+#%% 3.Create new database in Pinecone
 
 index_name = 'duhocsinh-se'
 
@@ -49,12 +49,12 @@ if index_name not in pinecone.list_indexes():
 
 index = pinecone.Index(index_name)
 
-#%% 4. Load data and index to Pinecone
-data = pd.read_json('migrationsverket.jsonl', lines=True)
+#%% 4.Load data and index to Pinecone
+data = pd.read_json('data_crawler/crawled_data/merged_data.jsonl', lines=True)
 
-batch_size = 8
+batch_size = 2
 
-for i in range(0, len(data), batch_size):
+for i in range(0, 8, batch_size):
     print(i)
     i_end = min(len(data), i+batch_size)
     batch = data.iloc[i:i_end]
