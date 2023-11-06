@@ -15,14 +15,12 @@ def chunk_text(input_text):
     """
     Split a text into chunks of a specific size with overlapping.
 
-    :param input_text: The input text to be chunked.
-    :type input_text: str
-    :return: A list of strings containing the chunks of the input text with overlapping.
-    :rtype: list[str]
+    :param input_text (str): The input text to be chunked.
+    :return (list[str]): A list of strings containing the chunks of the input text with overlapping.
     """
     # This part is deposited for writing chunk_text from Langchain library
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1000,
+        chunk_size = 4000,
         chunk_overlap = 200,
         length_function = len,
         is_separator_regex = False
@@ -118,8 +116,8 @@ class Crawler:
             #! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
             paragraphs = soup.find_all(['p', 'h1', 'h2'])
-            text = "\n".join([p.get_text().strip() for p in paragraphs])
-            text_start = "\n".join([p.get_text().strip() for p in paragraphs[:3]])  # only take first 3 paragraphs
+            text = " ".join([p.get_text().strip() for p in paragraphs])
+            text_start = text[:1000]  # take first 1000 characters to assess the language
 
             # Check if the website has supported languages
             detected = self.translator.detect(text_start)
@@ -143,7 +141,7 @@ class Crawler:
                 entries[str(idx)] = {
                     "chunk-id": str(idx),
                     "source": url,
-                    "title": title,
+                    "title": title[0],
                     "chunk": chunk,
                     "updated": date,
                 }
@@ -157,12 +155,13 @@ class Crawler:
             # Recursively crawl each of the links found on the page
             for link in links:
                 href = link.get('href')
+                if href == None or len(href)==0 or href[0]=='#': continue
                 if href and href.startswith('http'):
                     new_url = href
                 else:
                     new_url = urljoin(url, href)
                 if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
-                    time.sleep(1)
+                    time.sleep(0.1)
                     self.crawl_website(new_url, output_file, depth=depth - 1)
 
         #! Give error message when connection fails
@@ -183,10 +182,8 @@ if __name__ == '__main__':
     # Initialize models and variables
     crawler = Crawler()
     max_depth = 5
-    url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
+    url = 'https://www.migrationsverket.se/English.html'
     output_file = 'migrationverket.jsonl'
-
-
 
     # Crawling
     crawler.crawl_website(url, output_file=output_file, depth=max_depth)
