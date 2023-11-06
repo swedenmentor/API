@@ -11,7 +11,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/q', methods=['GET','POST','OPTIONS'])
 @cross_origin()
-def get_companies():
+def q_post():
     if request.method == 'POST':
         content_type = request.headers.get('Content-Type')
         if (content_type != 'application/json'
@@ -22,7 +22,7 @@ def get_companies():
                 status=500
             )
         
-        prompt = request.json['messages'][-1]['content']
+        prompt = build_prompt(request.json['messages'])
         
         return app.response_class(
             response=text_transform(generate_text(prompt)),
@@ -32,6 +32,9 @@ def get_companies():
         
     elif request.method == 'GET':
         return 'It is working'
+
+def build_prompt(messages):
+    return messages[-1]['content']
 
 #if __name__ == '__main__':
 #    app.run(host='0.0.0.0',port=8000,debug=False,ssl_context=('cert.pem', 'key.pem')) #ssl_context='adhoc'
