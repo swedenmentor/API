@@ -81,7 +81,7 @@ class Crawler:
             for url in self.visited_urls:
                 f.write(f'{url}\n')
 
-    def crawl_links(self, url, depth = 5, lang = ['sv', 'en']):
+    def crawl_links(self, url, depth = 10, lang = ['sv', 'en']):
         """
         :param url: The URL to crawl and extract links from.
         :type url: str

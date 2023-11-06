@@ -4,7 +4,7 @@ import jsonlines
 import os
 
 #%% 2.Set parameters
-max_depth = 5
+max_depth = 10
 
 file_paths = {
     'chiaselund': os.path.join('data_crawler', 'crawled_data'),
