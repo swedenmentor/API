@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -11,12 +5,11 @@ import datetime
 import jsonlines
 from urllib.parse import urljoin
 from googletrans import Translator
-from langdetect import detect  # Added langdetect library for language detection
+from langdetect import detect
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Define function to chunk text
 def chunk_text(input_text):
-    # This part is deposited for writing chunk_text from Langchain library
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,
@@ -51,7 +44,7 @@ class Crawler:
         return output
 
     def crawl_website(self, url, output_file, depth=5):
-        if (depth == 0) or (url in self.visited_urls):
+        if (depth == 0) or (url in self.visited_urls) or not url.startswith('https://www.migrationsverket.se'):
             return
 
         try:
@@ -117,4 +110,3 @@ if __name__ == '__main__':
 
     # Crawling
     crawler.crawl_website(url, output_file=output_file, depth=max_depth)
-
