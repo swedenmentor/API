@@ -30,7 +30,7 @@ output_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.jso
 migration.crawl_links(urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
 #! Export to .txt file if needed
 migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
-migration.extract_web_element(input_file = None, web_element = ['p', 'h1', 'h2'], start=0, end=None, output_file)
+migration.extract_web_element(output_file, web_element = ['p', 'h1', 'h2'])
 
 
 

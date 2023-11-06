@@ -175,7 +175,7 @@ class Crawler:
                 self.data_buffer = []
         return
 
-    def extract_web_element(self, input_file = None, web_element = ['p', 'h1', 'h2'], start=0, end=None, output_file):
+    def extract_web_element(self, output_file, input_file = None, web_element = ['p', 'h1', 'h2'], start=0, end=None):
         """
         Crawls a website starting from a specified URL and extracts information,
         creating an entry for each visited webpage and writing the information to a file.
