@@ -1,33 +1,15 @@
 #%% 1️⃣ Loading packages
-import time                                         # for time-related tasks
-import requests                                     # for making HTTP requests
-from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
-import datetime                                     # for dealing with dates and times
-import jsonlines                                    # for handling JSONL format
-from urllib.parse import urljoin                    # for URL parsing and joining
-from googletrans import Translator                  # for text translation using Google Translate API
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import time                                                         # for time-related tasks
+import requests                                                     # for making HTTP requests
+from bs4 import BeautifulSoup                                       # for web scraping, parsing HTML
+import datetime                                                     # for dealing with dates and times
+import jsonlines                                                    # for handling JSONL format
+from urllib.parse import urljoin                                    # for URL parsing and joining
+from googletrans import Translator                                  # for text translation using Google Translate API
+from langchain.text_splitter import RecursiveCharacterTextSplitter  # for splitting text into chunks with overlapping
 
 
 #%% 2️⃣ Define function to crawl data from the website
-
-def chunk_text(input_text):
-    """
-    Split a text into chunks of a specific size with overlapping.
-
-    :param input_text: The input text to be chunked.
-    :type input_text: str
-    :return: A list of strings containing the chunks of the input text with overlapping.
-    :rtype: list[str]
-    """
-    # This part is deposited for writing chunk_text from Langchain library
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1000,
-        chunk_overlap = 200,
-        length_function = len,
-        is_separator_regex = False
-    )
-    return text_splitter.split_text(input_text) # Return a list of strings with overlapping
 
 class Crawler:
     """
@@ -40,23 +22,17 @@ class Crawler:
     def __init__(self):
         self.visited_urls = set() #! Set is a data structure that stores unique values
         self.translator = Translator()
+        self.splitter = RecursiveCharacterTextSplitter(
+            chunk_size = 1000,
+            chunk_overlap = 200,
+            length_function = len,
+            is_separator_regex = False
+        )
         self.data_buffer = []
 
-    def write_to_file(self, output_file):
-        """
-        Write data from data buffer to a file.
+    def chunk_text(self, input_text):
+        return self.splitter.split_text(input_text)  # Return a list of strings with overlapping
 
-        :param output_file: The path to the file where the data will be written.
-        :type output_file: str
-        :return: None
-        :rtype: None
-        """
-        if self.data_buffer:
-            with jsonlines.open(output_file, mode = 'a') as file:
-                for entry in self.data_buffer:
-                    file.write(entry)
-                self.data_buffer = []
-        return
     def translate_text(self, text):
         """
         Translate Text
@@ -79,6 +55,21 @@ class Crawler:
                 output.append(chunk)
         return output
 
+    def write_to_file(self, output_file):
+        """
+        Write data from data buffer to a file.
+
+        :param output_file: The path to the file where the data will be written.
+        :type output_file: str
+        :return: None
+        :rtype: None
+        """
+        if self.data_buffer:
+            with jsonlines.open(output_file, mode = 'a') as file:
+                for entry in self.data_buffer:
+                    file.write(entry)
+                self.data_buffer = []
+        return
 
     def crawl_website(self, url, output_file, depth=5):
         """
@@ -117,6 +108,8 @@ class Crawler:
 
             #! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
+
+            #TODO: Find all date tags for all websites
             date_tag = soup.find('p', class_='ahjalpfunktioner')
             if date_tag:
                 time_tag = date_tag.find('time')
@@ -170,16 +163,3 @@ class Crawler:
 
 
 
-
-#%% 3️⃣ Crawl data and save to jsonl file
-if __name__ == '__main__':
-    # Initialize models and variables
-    crawler = Crawler()
-    max_depth = 5
-    url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
-    output_file = 'migrationverket.jsonl'
-
-
-
-    # Crawling
-    crawler.crawl_website(url, output_file=output_file, depth=max_depth)

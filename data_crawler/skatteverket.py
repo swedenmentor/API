@@ -1,5 +1,13 @@
 # %% 1️⃣ Loading packages
-# load packages need for crawling data
+from data_crawler import migrationverket
+max_depth = 5
+output_file = 'chiaselund.jsonl'
+url = 'https://www.chiaselund.com/post/_p123'
+
+migrationverket.Crawler().crawl_website(url, output_file=output_file, depth=max_depth)
+
+
+
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
