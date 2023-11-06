@@ -2,6 +2,7 @@ from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 
 #from llmodels.gpt3 import *
+#from llmodels.gpt3chat import *
 from llmodels.rag_gpt3 import *
 #from llmodels.rag_gpt4 import *
                                       
@@ -11,7 +12,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/q', methods=['GET','POST','OPTIONS'])
 @cross_origin()
-def get_companies():
+def q_post():
     if request.method == 'POST':
         content_type = request.headers.get('Content-Type')
         if (content_type != 'application/json'
@@ -22,7 +23,7 @@ def get_companies():
                 status=500
             )
         
-        prompt = request.json['messages'][-1]['content']
+        prompt = build_prompt(request.json['messages'])
         
         return app.response_class(
             response=text_transform(generate_text(prompt)),

@@ -91,4 +91,7 @@ def text_transform(res):
         'source_documents': source_documents
     })
 
+def build_prompt(messages):
+    return messages[-1]['content']
+
 #print(text_transform(generate_text("What is deep convolutional nets?")))

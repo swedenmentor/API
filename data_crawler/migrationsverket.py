@@ -1,4 +1,4 @@
-#%% 1️⃣ Loading packages
+#%% 1. Loading packages
 import time                                         # for time-related tasks
 import requests                                     # for making HTTP requests
 from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
@@ -9,7 +9,7 @@ from googletrans import Translator                  # for text translation using
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
-#%% 2️⃣ Define function to crawl data from the website
+#%% 2.  Define function to crawl data from the website
 
 def chunk_text(input_text):
     """
@@ -156,10 +156,13 @@ class Crawler:
             for link in links:
                 href = link.get('href')
                 if href == None or len(href)==0 or href[0]=='#': continue
-                if href and href.startswith('http'):
+                if href and href.startswith('https'):
                     new_url = href
                 else:
                     new_url = urljoin(url, href)
+                if not new_url.startswith('https://www.migrationsverket.se/English'):
+                    continue
+                print(new_url)
                 if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
                     time.sleep(0.1)
                     self.crawl_website(new_url, output_file, depth=depth - 1)
@@ -177,13 +180,13 @@ class Crawler:
 
 
 
-#%% 3️⃣ Crawl data and save to jsonl file
+#%% 3. rawl data and save to jsonl file
 if __name__ == '__main__':
     # Initialize models and variables
     crawler = Crawler()
-    max_depth = 5
+    max_depth = 10
     url = 'https://www.migrationsverket.se/English.html'
-    output_file = 'migrationverket.jsonl'
+    output_file = 'migrationsverket.jsonl'
 
     # Crawling
     crawler.crawl_website(url, output_file=output_file, depth=max_depth)
