@@ -23,7 +23,7 @@ pinecone.init(
     api_key=os.environ.get('PINECONE_API_KEY'),
     environment=os.environ.get('PINECONE_ENV')
 )
-index_name = 'llama-2-rag'  
+index_name = 'duhocsinh-se'  
 index = pinecone.Index(index_name)
 print("Pinecone DB: ready")
 
