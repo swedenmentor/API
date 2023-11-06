@@ -2,6 +2,7 @@ from flask import Flask, json, request
 from flask_cors import CORS, cross_origin
 
 #from llmodels.gpt3 import *
+#from llmodels.gpt3chat import *
 from llmodels.rag_gpt3 import *
 #from llmodels.rag_gpt4 import *
                                       
@@ -32,16 +33,6 @@ def q_post():
         
     elif request.method == 'GET':
         return 'It is working'
-
-def build_prompt(messages):
-    prompt = ""
-    for message in reversed(messages):
-        previous_message = message['role'].capitalize() + ": " + message['content'] + "\n"
-        if len(previous_message) + len(prompt) > 3841:
-            break;
-        prompt = previous_message + prompt
-    prompt = "I want you to act as an information assistant who specializes in laws and advice regarding tax, migration, and living in Sweden. If you don't know the answer to any question, answer that you are only knowledgeable about Sweden. \n\n" + prompt
-    return prompt
 
 #if __name__ == '__main__':
 #    app.run(host='0.0.0.0',port=8000,debug=False,ssl_context=('cert.pem', 'key.pem')) #ssl_context='adhoc'
