@@ -4,7 +4,7 @@ import requests                                     # for making HTTP requests
 from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
 import datetime                                     # for dealing with dates and times
 import jsonlines                                    # for handling JSONL format
-from urllib.parse import urljoin                    # for URL parsing and joining
+from urllib.parse import urlparse, urljoin          # for URL parsing and joining
 from googletrans import Translator                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -117,6 +117,16 @@ class Crawler:
 
             #! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
+            paragraphs = soup.find_all(['p', 'h1', 'h2'])
+            text = "\n".join([p.get_text().strip() for p in paragraphs])
+            text_start = "\n".join([p.get_text().strip() for p in paragraphs[:3]])  # only take first 3 paragraphs
+
+            # Check if the website has supported languages
+            detected = self.translator.detect(text_start)
+            if detected.lang not in ['sv', 'en', 'vi']:
+                # print(f'Page at {url} is written in an unsupported language: {detected.lang}')
+                return
+
             date_tag = soup.find('p', class_='ahjalpfunktioner')
             if date_tag:
                 time_tag = date_tag.find('time')
@@ -126,9 +136,6 @@ class Crawler:
 
             title = soup.title.text.strip()
             title = self.translate_text(title)
-            paragraphs = soup.find_all(['p', 'h1', 'h2'])
-
-            text = "\n".join([p.get_text().strip() for p in paragraphs])
             chunks = self.translate_text(text)
 
             entries = {}
@@ -154,7 +161,7 @@ class Crawler:
                     new_url = href
                 else:
                     new_url = urljoin(url, href)
-                if new_url not in self.visited_urls:
+                if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
                     time.sleep(1)
                     self.crawl_website(new_url, output_file, depth=depth - 1)
 
