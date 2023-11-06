@@ -232,7 +232,7 @@ class Crawler:
                 for idx, chunk in enumerate(chunks):
                     entries[str(idx)] = {
                         "chunk-id": str(idx),
-                        "source": url,
+                        "source": url_extract,
                         "title": title[0],
                         "chunk": chunk,
                         "updated": date,
@@ -250,4 +250,4 @@ class Crawler:
             except requests.exceptions.ConnectionError as errc:
                 print(f"ConnectionError: {errc}")
             except Exception as e:
-                print(f"An error occurred while processing {url}: {str(e)}")
+                print(f"An error occurred while processing {url_extract}: {str(e)}")
