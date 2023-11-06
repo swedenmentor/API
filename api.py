@@ -34,7 +34,10 @@ def q_post():
         return 'It is working'
 
 def build_prompt(messages):
-    return messages[-1]['content']
+    prompt = "I want you to act as an information assistant who specializes in laws and information regarding studying and living in Sweden. If you don't know the answer to any question, answer that you are only knowledgeable about studying and living in Sweden. \n\n"
+    for message in messages:
+        prompt += message['role'].capitalize() + ": " + message['content'] + "\n"
+    #return messages[-1]['content']
 
 #if __name__ == '__main__':
 #    app.run(host='0.0.0.0',port=8000,debug=False,ssl_context=('cert.pem', 'key.pem')) #ssl_context='adhoc'
