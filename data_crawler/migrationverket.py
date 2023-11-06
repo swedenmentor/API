@@ -4,24 +4,24 @@ import requests                                     # for making HTTP requests
 from bs4 import BeautifulSoup                       # for web scraping, parsing HTML
 import datetime                                     # for dealing with dates and times
 import jsonlines                                    # for handling JSONL format
-from urllib.parse import urlparse, urljoin          # for URL parsing and joining
+from urllib.parse import urljoin                    # for URL parsing and joining
 from googletrans import Translator                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 #from langdetect import detect, LangDetectException  # for language detection
 
-#%% 2️⃣ Define function crawl data from the website
+#%% 2️⃣ Define function to crawl data from the website
 def word_count(text):
     return len(text.split())
 
 def chunk_text(input_text):
     # This part is deposited for writing chunk_text from Langchain library
-    '''# With text_splitter = RecursiveCharacterTextSplitter(
+    text_splitter = RecursiveCharacterTextSplitter(
         chunk_size = 1000,
         chunk_overlap  = 200,
         length_function = len,
         is_separator_regex = False
-    )'''
+    )
     return text_splitter.split_text(input_text) # Return a list of strings with overlapping
 
 
@@ -55,31 +55,8 @@ class Crawler:
                 for entry in self.data_buffer:
                     file.write(entry)
                 self.data_buffer = []
-
-    
         return
     def translate_text(self, text):
-        '''chunks = []
-        words = text.split(" ")
-        temp = ""
-        for word in words:
-            temp += word + " "
-            if len(temp.split()) >= 300:
-                temp = temp.rsplit(' ', 1)[0]
-                chunks.append(temp)
-                temp = word + " "
-        if temp.strip():
-            chunks.append(temp.strip())
-
-        output = []
-        for chunk in chunks:
-            detected = self.translator.detect(chunk)
-            if detected.lang != 'en':
-                translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
-                output.append(translated_chunk)
-            else:
-                output.append(chunk)
-        return ' '.join(output)'''
         output = []
         for chunk in chunk_text(text):
             detected = self.translator.detect(chunk)
@@ -136,14 +113,17 @@ class Crawler:
             text = "\n".join([p.get_text().strip() for p in paragraphs])
             chunks = self.translate_text(text)
 
-            entry = {
-                "source": url,
-                "title": title,
-                "chunk": chunks,
-                # "chunk_en": chunk_en,
-                "updated": date
-            }
-            self.data_buffer.append(entry)
+            entries = {}
+            for idx, chunk in enumerate(chunks):
+                entries[str(idx)] = {
+                    "chunk-id": str(idx),
+                    "source": url,
+                    "title": title,
+                    "chunk": chunk,
+                    "updated": date,
+                }
+            for key in entries:
+                self.data_buffer.append(entries[key])
             self.write_to_file(output_file)
 
             links = soup.find_all('a')
@@ -173,14 +153,15 @@ class Crawler:
 if __name__ == '__main__':
     # Initialize models and variables
     crawler = Crawler()
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1000, chunk_overlap  = 200,
-        length_function = len, is_separator_regex = False)
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size = 1000, chunk_overlap  = 200,
+    #     length_function = len, is_separator_regex = False)
+    max_depth = 5
     url = 'https://www.migrationsverket.se/Privatpersoner/Arbeta-i-Sverige/Nyhetsarkiv/2023-11-01-Nu-borjar-det-hojda-forsorjningskravet-for-arbetstillstand-att-galla.html'
     output_file = 'migrationverket.jsonl'
     URL_list={}
     # Crawling
-    crawler.crawl_website(url, output_file=output_file, depth=2)
+    crawler.crawl_website(url, output_file=output_file, depth=max_depth)
 
     # # make sure to write remaining data to file
     # if crawler.data_buffer:
