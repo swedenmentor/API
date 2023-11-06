@@ -21,6 +21,12 @@ pip install -r requirements.txt
 
 Rename `.env.example` to `.env` and provide the corresponding API keys.
 
+## Create database
+
+```bash
+sh build_knowledge.sh
+```
+
 ## Run server API
 
 ```bash
@@ -57,6 +63,12 @@ sudo apt update
 sudo apt install python3.10
 sudo apt install python3-pip
 pip install -r requirements.txt
+```
+
+## Create database
+
+```bash
+sh build_knowledge.sh
 ```
 
 ## Run server API
