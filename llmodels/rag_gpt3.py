@@ -94,4 +94,14 @@ def text_transform(res):
 def build_prompt(messages):
     return messages[-1]['content']
 
+#def build_prompt(messages):                                                                                                               
+#    prompt = ""                                                                                                                           
+#    for message in reversed(messages):                                                                                                    
+#        formatted_message = message['role'].capitalize() + ": " + message['content'].split("\n\n&nbsp; \n\n**", 1)[0] + "\n"              
+#        print(formatted_message)
+#        if len(prompt) + len(formatted_message) > 3841:
+#            break
+#        prompt = formatted_message + prompt
+#    return prompt
+
 #print(text_transform(generate_text("What is deep convolutional nets?")))
