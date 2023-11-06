@@ -26,7 +26,12 @@ embed_model = HuggingFaceEmbeddings(
     encode_kwargs={'device': device, 'batch_size': 32}
 )
 
-embeddings = embed_model.embed_documents()
+docs = [
+    "this is one document",
+    "and another document"
+]
+
+embeddings = embed_model.embed_documents(docs)
 
 #%% 3️⃣ Create new database in Pinecone
 
