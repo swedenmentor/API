@@ -34,6 +34,7 @@ def q_post():
         return 'It is working'
 
 def build_prompt(messages):
+    prompt = ""
     for message in reversed(messages):
         previous_message = message['role'].capitalize() + ": " + message['content'] + "\n"
         if len(previous_message) + len(prompt) > 3841:
