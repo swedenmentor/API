@@ -1,10 +1,10 @@
-# %% 1️⃣ Loading packages
-from data_crawler import migrationverket
+#%% 1. Loading packages
+from data_crawler import migrationsverket
 max_depth = 5
 output_file = 'chiaselund.jsonl'
 url = 'https://www.chiaselund.com/post/_p123'
 
-migrationverket.Crawler().crawl_website(url, output_file=output_file, depth=max_depth)
+migrationsverket.Crawler().crawl_website(url, output_file=output_file, depth=max_depth)
 
 
 
@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
-# %% 2️⃣ Extracting HTML from the website
+#%% 2. Extracting HTML from the website
 
 def crawl(url, depth):
     if depth == 0:

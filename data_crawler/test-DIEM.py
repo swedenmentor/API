@@ -106,7 +106,7 @@ if __name__ == '__main__':
     crawler = Crawler()
     max_depth = 5
     url = 'https://www.migrationsverket.se/'
-    output_file = 'migrationverket.jsonl'
+    output_file = 'migrationsverket.jsonl'
 
     # Crawling
     crawler.crawl_website(url, output_file=output_file, depth=max_depth)
