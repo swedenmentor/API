@@ -40,7 +40,7 @@ def build_prompt(messages):
         if len(previous_message) + len(prompt) > 3841:
             break;
         prompt = previous_message + prompt
-    prompt = "I want you to act as an information assistant who specializes in laws and information regarding studying and living in Sweden. If you don't know the answer to any question, answer that you are only knowledgeable about studying and living in Sweden. \n\n" + prompt
+    prompt = "I want you to act as an information assistant who specializes in laws and advice regarding tax, migration, and living in Sweden. If you don't know the answer to any question, answer that you are only knowledgeable about Sweden. \n\n" + prompt
     return prompt
 
 #if __name__ == '__main__':
