@@ -1,33 +1,40 @@
-#%% 1️⃣ Import crawler module and libraries
+#%% 1.Import crawler module and libraries
 from data_crawler import crawler
 import jsonlines
 import os
 
-#%% 2️⃣ Set parameters
+#%% 2.Set parameters
 max_depth = 5
 
 file_paths = {
-    'chiaselund': os.path.join('data_crawler', 'crawled_data', 'chiaselund.jsonl'),
-    'migrationverket': os.path.join('data_crawler', 'crawled_data', 'migrationverket.jsonl'),
-    'skatterverket': os.path.join('data_crawler', 'crawled_data', 'skatterverket.jsonl'),
-    'studyinsweden': os.path.join('data_crawler', 'crawled_data', 'studyinsweden.jsonl'),
+    'chiaselund': os.path.join('data_crawler', 'crawled_data'),
+    'migrationsverket': os.path.join('data_crawler', 'crawled_data'),
+    'skatterverket': os.path.join('data_crawler', 'crawled_data'),
+    'studyinsweden': os.path.join('data_crawler', 'crawled_data')
 }
 
 urls = {
     'chiaselund': 'https://www.chiaselund.com/',
-    'migrationverket': 'https://www.migrationsverket.se/',
+    'migrationsverket': 'https://www.migrationsverket.se/',
     'skatterverket': 'https://www.skatteverket.se/',
     'studyinsweden': 'https://studyinsweden.se/',
 }
 
 merged_data = os.path.join('data_crawler', 'crawled_data', 'merged_data.jsonl')
 
-#%% 3️⃣ Crawling data and write to a final jsonl file
-for name, url in urls.items():
-    output_file = file_paths[name]
-    crawler.Crawler().crawl_website(url, output_file=output_file, depth=max_depth)
+#%% 3.Crawling data and write to a final jsonl file
+migration = Crawler()
+output_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.jsonl')
 
-#%% 4️⃣ Merge all results into a single jsonl file
+# Extract all links from the website
+migration.crawl_links(urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
+#! Export to .txt file if needed
+migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
+migration.extract_web_element(input_file = None, web_element = ['p', 'h1', 'h2'], start=0, end=None, output_file)
+
+
+
+#%% 4.Merge all results into a single jsonl file
 with jsonlines.open(merged_data, mode='w') as writer:
     for fp in file_paths.values():
         with jsonlines.open(fp, mode='r') as reader:
