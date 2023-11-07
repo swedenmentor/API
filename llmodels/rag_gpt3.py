@@ -5,16 +5,14 @@ from dotenv import load_dotenv
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-#%% 1. Initializing the LLM Model (GPT-3)
 #######################
-# Step 1: LLM model      
+# Step 1: Initializing the LLM Model (GPT-3)   
 #######################
 llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120)
 print("LLM: ready")
 
-#%% 2. Building the Knowledge Base
 #######################
-# Step 2: Vector DB containing the specialized data     
+# Step 2: Building the Knowledge Base
 #######################
 
 import pinecone
@@ -26,8 +24,8 @@ index_name = 'duhocsinh-se'
 index = pinecone.Index(index_name)
 print("Pinecone DB: ready")
 
-#%% 3. Initializing the Embedding Pipeline (Hugging Face Sentence Transformer)
 #######################
+# Step 3: Initializing the Embedding Pipeline (Hugging Face Sentence Transformer)
 # Embed model                                               
 # maps sentences & paragraphs to a 384-dimensional dense vector space
 # and can be used for tasks like clustering or semantic search.
@@ -43,10 +41,9 @@ embed_model = HuggingFaceEmbeddings(
 )
 print("Embed model: ready")
 
-#%% 4. Initializing the RetrievalQA Component
-
 #######################
-# Step 3: Langchain to glue them together  
+# Step 4: Initializing the RetrievalQA Component
+# Langchain to glue the components together  
 #######################
 
 from langchain.vectorstores import Pinecone
@@ -57,13 +54,8 @@ vectorstore = Pinecone(index,
                        embed_model,
                        text_field)
 
-from langchain.memory import ConversationBufferMemory
-memory = ConversationBufferMemory(
-        memory_key='chat_history', return_messages=True, output_key='answer')
-
 generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
                                                       retriever=vectorstore.as_retriever(),
-                                                      # get_chat_history=lambda h : h
                                                       return_source_documents=True)
 print("generate_text(): ready")
 
