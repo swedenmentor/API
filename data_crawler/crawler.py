@@ -216,7 +216,7 @@ class Crawler:
                     temp_dict = {}
                     input_text = item['content']['rendered'] if 'content' in item and 'rendered' in item[
                         'content'] else None
-                    input_text = BeautifulSoup(input_text, 'html.parser').get_text(separator = '\n')
+                    input_text = BeautifulSoup(input_text, 'html.parser').get_text(separator = '').replace('\n', ' ').replace('\r', '').strip()
                     chunks = self.splitter.split_text(input_text)
 
                     for idx, chunk in enumerate(chunks):
