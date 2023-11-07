@@ -1,12 +1,17 @@
 #%% 1.Loading packages
 import time                                                         # for time-related tasks
 import requests                                                     # for making HTTP requests
+from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError, RequestException, ConnectionError
+import urllib3
 from bs4 import BeautifulSoup                                       # for web scraping, parsing HTML
 import datetime                                                     # for dealing with dates and times
 import jsonlines                                                    # for handling JSONL format
 from urllib.parse import urlparse, urljoin                          # for URL parsing and joining
 from googletrans import Translator                                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter  # for splitting text into chunks with overlapping
+from utils.custom_logger import CustomLogger
+
 
 #%% 2.Define function to crawl data from the website
 
@@ -18,7 +23,10 @@ class Crawler:
     visited_urls (set): A set to hold the URLs already visited by the crawler.
     translator (Translator): A Translator object to perform translations.
     """
-    def __init__(self):
+    def __init__(
+            self, 
+            logger: CustomLogger = None
+        ):
         """
 
         Initialize the object of the class.
@@ -42,6 +50,39 @@ class Crawler:
             is_separator_regex = False
         )
         self.data_buffer = []
+        self.logger = logger or CustomLogger(name=self.__class__.__name__, write_local=False)
+        # Added for future use
+        # self.session = self.get_session(total_retries, backoff_factor, status_forcelist)
+    
+    
+    def get_session(
+            self, 
+            total_retries: int = 3, 
+            backoff_factor: float = 0.1, 
+            status_forcelist: list[int] = [500, 502, 503, 504, 429]
+        ):
+        """Generate a session object with retry settings.
+
+        Parameters
+        ----------
+        total_retries : int
+            Total number of retries allowed
+        backoff_factor : float
+            This parameter affects how long the process waits before retrying a request.
+            wait_time = {backoff factor} * (2 ** ({number of total retries} - 1))
+            For example, if the backoff_factor is 0.1, the process will sleep for [0.1s, 0.2s, 0.4s, ...] between retries.
+        status_forcelist : list[int]
+            List of status codes that will trigger a retry.
+        """
+        retries = urllib3.Retry(
+            total=total_retries, 
+            backoff_factor=backoff_factor, 
+            status_forcelist=status_forcelist
+        )
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session = requests.Session()
+        self.session.mount('http://', adapter)
+
 
     def chunk_text(self, input_text):
         return self.splitter.split_text(input_text)  # Return a list of strings with overlapping
@@ -58,8 +99,9 @@ class Crawler:
         :rtype: list[str]
 
         """
+        
         output = []
-        for chunk in chunk_text(text):
+        for chunk in self.chunk_text(text):
             detected = self.translator.detect(chunk)
             if detected.lang != 'en':
                 translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
@@ -68,7 +110,7 @@ class Crawler:
                 output.append(chunk)
         return output
 
-    def write_visited_urls(self, crawled_urls_file):
+    def write_visited_urls(self, crawled_urls_file: str):
         '''
         Write visited urls to a file.
         :param file: The path to the .txt file where the urls will be written.
@@ -111,16 +153,23 @@ class Crawler:
         # ! Check if the depth is 0 or the url has been visited
         if (depth == 0) or (url in self.visited_urls):
             return
+        
+        self.logger.info(f'Visiting: {url}')
+        response = requests.get(url, timeout=300)
         try:
-            # ! Check connection first
-            response = requests.get(url)
-            if not response.status_code == 200:
-                print(f'Non success status for url {url}')
-                return
-            else:
-                print(f'Successful connection to url: {url}')
+            # Check if the url is valid
+            response.raise_for_status()
+        except (HTTPError, RequestException, ConnectionError) as err:
+            self.logger.error(f'Error when connecting: {err}')
+            return
+
+        else:
             self.visited_urls.add(url)  # Add url to visited_urls set
 
+        # TODO: Add more detailed error handling. Should not try to do 
+        # too many things in one try block
+        self.logger.info("Parsing response...")
+        try:
             # ! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -131,7 +180,7 @@ class Crawler:
             # Check if the website has supported languages
             detected = self.translator.detect(check_lang)
             if detected.lang not in lang:
-                # print(f'Page at {url} is written in an unsupported language: {detected.lang}')
+                self.logger.error(f'Page at {url} is written in an unsupported language: {detected.lang}')
                 return
 
             # ! Recursion
@@ -147,18 +196,12 @@ class Crawler:
                 else:
                     new_url = urljoin(url, href)
                 if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
-                    time.sleep(0.01)
+                    time.sleep(0.01)  #TODO: Use a better rate limiting method
                     self.crawl_links(new_url, depth = depth - 1)
 
-        # ! Give error message when connection fails
-        except requests.exceptions.RequestException as err:
-            print(f"RequestException: {err}")
-        except requests.exceptions.HTTPError as errh:
-            print(f"HTTPError: {errh}")
-        except requests.exceptions.ConnectionError as errc:
-            print(f"ConnectionError: {errc}")
         except Exception as e:
-            print(f"An error occurred while processing {url}: {str(e)}")
+            self.logger.error(f"An error occurred while processing {url}: {str(e)}")
+
 
     def write_web_element(self, output_file):
         """
@@ -273,13 +316,21 @@ class Crawler:
             urls = list(self.visited_urls)
 
         for url_extract in urls[start:end]:
+            self.logger.info(f'Visiting: {url_extract}')
+            response = requests.get(url_extract)
             try:
                 #! Check connection first
-                response = requests.get(url_extract)
-                if not response.status_code == 200:
-                    print(f'Non success status for url {url_extract}')
-                    return
+                response.raise_for_status()
+                
+            except (RequestException, HTTPError, ConnectionError) as err:
+                self.logger.error(f'Error when connecting: {err}')
+                return
 
+            # TODO: Add more detailed error handling. Should not try to do do 
+            # too many things in one try block
+
+            self.logger.info("Parsing response...")
+            try:
                 #! Extract web elmements
                 soup = BeautifulSoup(response.text, 'html.parser')
                 if special_tags is not None and class_name is not None:
@@ -315,13 +366,5 @@ class Crawler:
                     self.data_buffer.append(entries[key])
                 self.write_web_element(output_file)
 
-
-            #! Give error message when connection fails
-            except requests.exceptions.RequestException as err:
-                print(f"RequestException: {err}")
-            except requests.exceptions.HTTPError as errh:
-                print(f"HTTPError: {errh}")
-            except requests.exceptions.ConnectionError as errc:
-                print(f"ConnectionError: {errc}")
             except Exception as e:
-                print(f"An error occurred while processing {url_extract}: {str(e)}")
+                self.logger.error(f"An error occurred while processing {url_extract}: {str(e)}")
