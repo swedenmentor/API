@@ -1,8 +1,7 @@
 from langchain.llms import OpenAI, HuggingFacePipeline
-from dotenv import load_dotenv
 import os
 import json
-
+from dotenv import load_dotenv
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -10,7 +9,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 #######################
 # Step 1: LLM model      
 #######################
-llm = OpenAI(temperature=0, model_name='text-davinci-003')
+llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120)
 print("LLM: ready")
 
 #%% 2. Building the Knowledge Base
@@ -51,16 +50,21 @@ print("Embed model: ready")
 #######################
 
 from langchain.vectorstores import Pinecone
-from langchain.chains import RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
 
 text_field = 'text'  # field in metadata that contains text content                              
 vectorstore = Pinecone(index,
                        embed_model,
                        text_field)
-generate_text = RetrievalQA.from_chain_type(llm=llm,
-                                            chain_type='stuff',
-                                            retriever=vectorstore.as_retriever(),
-                                            return_source_documents=True)
+
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory(
+        memory_key='chat_history', return_messages=True, output_key='answer')
+
+generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
+                                                      retriever=vectorstore.as_retriever(),
+                                                      # get_chat_history=lambda h : h
+                                                      return_source_documents=True)
 print("generate_text(): ready")
 
 #######################
@@ -87,21 +91,20 @@ def text_transform(res):
         if 'kwargs' in doc:
             source_documents.append(doc['kwargs']['metadata'])
     return json.dumps({
-        'result': res['result'],
+        'result': res['answer'],
         'source_documents': source_documents
     })
 
 def build_prompt(messages):
-    return messages[-1]['content']
-
-#def build_prompt(messages):                                                                                                               
-#    prompt = ""                                                                                                                           
-#    for message in reversed(messages):                                                                                                    
-#        formatted_message = message['role'].capitalize() + ": " + message['content'].split("\n\n&nbsp; \n\n**", 1)[0] + "\n"              
-#        print(formatted_message)
-#        if len(prompt) + len(formatted_message) > 3841:
-#            break
-#        prompt = formatted_message + prompt
-#    return prompt
-
-#print(text_transform(generate_text("What is deep convolutional nets?")))
+    chat_history = []
+    num_messages = len(messages)
+    if num_messages % 2 == 1:
+        num_char_in_chat_history = 0
+        for i in reversed(range((num_messages-1)//2)):
+            formatted_question = messages[2*i]['content']
+            formatted_response = messages[2*i+1]['content'].split("\n\n&nbsp; \n\n**", 1)[0]
+            if num_char_in_chat_history + len(formatted_question) + len(formatted_response) > 3841:
+                break
+            chat_history.insert(0, (formatted_question, formatted_response))
+            num_char_in_chat_history += len(formatted_question) + len(formatted_response)
+    return {"question": messages[-1]['content'], "chat_history": chat_history}
