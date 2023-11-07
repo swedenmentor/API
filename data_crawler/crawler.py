@@ -87,24 +87,33 @@ class Crawler:
     def translate_text(self, text):
         """
         Translate Text
-
         Translate the given text into English using a translator object.
-
         :param text: The text to be translated.
         :type text: str
         :return: The translated text.
         :rtype: list[str]
-
         """
-        
         output = []
         for chunk in self.splitter.split_text(text):
-            detected = self.translator.detect(chunk)
-            if detected.lang != 'en':
-                translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
-                output.append(translated_chunk)
-            else:
-                output.append(chunk)
+            retry_count = 0
+            while retry_count < 3:  # retry up to 3 times
+                try:
+                    detected = self.translator.detect(chunk)
+                    if detected.lang != 'en':
+                        translated_chunk = self.translator.translate(chunk, src=detected.lang, dest='en').text
+                        output.append(translated_chunk)
+                    else:
+                        output.append(chunk)
+                    break  # if translation is successful, break the retry loop
+                except AttributeError as e:
+                    retry_count += 1
+                    self.logger.warning(f'An error occurred during translation ({str(e)}), attempt {retry_count}, retrying in 2 seconds...')
+                    time.sleep(2)
+                    continue
+                except Exception as e:  # catch other exceptions that could occur
+                    self.logger.error(f'An unexpected error occurred during translation: {str(e)}')
+                    raise e
+
         return output
 
     def write_visited_urls(self, crawled_urls_file: str):
