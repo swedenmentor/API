@@ -1,21 +1,18 @@
 from langchain.llms import OpenAI, HuggingFacePipeline
-from dotenv import load_dotenv
 import os
 import json
-
+from dotenv import load_dotenv
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-#%% 1. Initializing the LLM Model (GPT-3)
 #######################
-# Step 1: LLM model      
+# Step 1: Initializing the LLM Model (GPT-3)   
 #######################
-llm = OpenAI(temperature=0, model_name='text-davinci-003')
+llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120)
 print("LLM: ready")
 
-#%% 2. Building the Knowledge Base
 #######################
-# Step 2: Vector DB containing the specialized data     
+# Step 2: Building the Knowledge Base
 #######################
 
 import pinecone
@@ -27,8 +24,8 @@ index_name = 'duhocsinh-se'
 index = pinecone.Index(index_name)
 print("Pinecone DB: ready")
 
-#%% 3. Initializing the Embedding Pipeline (Hugging Face Sentence Transformer)
 #######################
+# Step 3: Initializing the Embedding Pipeline (Hugging Face Sentence Transformer)
 # Embed model                                               
 # maps sentences & paragraphs to a 384-dimensional dense vector space
 # and can be used for tasks like clustering or semantic search.
@@ -44,23 +41,22 @@ embed_model = HuggingFaceEmbeddings(
 )
 print("Embed model: ready")
 
-#%% 4. Initializing the RetrievalQA Component
-
 #######################
-# Step 3: Langchain to glue them together  
+# Step 4: Initializing the RetrievalQA Component
+# Langchain to glue the components together  
 #######################
 
 from langchain.vectorstores import Pinecone
-from langchain.chains import RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
 
 text_field = 'text'  # field in metadata that contains text content                              
 vectorstore = Pinecone(index,
                        embed_model,
                        text_field)
-generate_text = RetrievalQA.from_chain_type(llm=llm,
-                                            chain_type='stuff',
-                                            retriever=vectorstore.as_retriever(),
-                                            return_source_documents=True)
+
+generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
+                                                      retriever=vectorstore.as_retriever(),
+                                                      return_source_documents=True)
 print("generate_text(): ready")
 
 #######################
@@ -87,11 +83,20 @@ def text_transform(res):
         if 'kwargs' in doc:
             source_documents.append(doc['kwargs']['metadata'])
     return json.dumps({
-        'result': res['result'],
+        'result': res['answer'],
         'source_documents': source_documents
     })
 
 def build_prompt(messages):
-    return messages[-1]['content']
-
-#print(text_transform(generate_text("What is deep convolutional nets?")))
+    chat_history = []
+    num_messages = len(messages)
+    if num_messages % 2 == 1:
+        num_char_in_chat_history = 0
+        for i in reversed(range((num_messages-1)//2)):
+            formatted_question = messages[2*i]['content']
+            formatted_response = messages[2*i+1]['content'].split("\n\n&nbsp; \n\n**", 1)[0]
+            if num_char_in_chat_history + len(formatted_question) + len(formatted_response) > 3841:
+                break
+            chat_history.insert(0, (formatted_question, formatted_response))
+            num_char_in_chat_history += len(formatted_question) + len(formatted_response)
+    return {"question": messages[-1]['content'], "chat_history": chat_history}
