@@ -3,6 +3,7 @@ import sys
 import datetime
 from logging import Logger, StreamHandler, Formatter, FileHandler
 from typing import Self
+from pathlib import Path
 
 
 class CustomLogger(Logger):
@@ -13,14 +14,14 @@ class CustomLogger(Logger):
     def __new__(cls, *args, **kwargs) -> Self:
         """Return the existing instance if it exists, otherwise create a new one."""
         if cls._instance is None:
-            cls._instance = super().__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls)
             
         return cls._instance
     
     def __init__(
             self, 
             *args,
-            name: str, 
+            name: str = 'custom_logger', 
             level: str = "INFO",
             write_local: bool = False,
             **kwargs
@@ -47,7 +48,7 @@ class CustomLogger(Logger):
 
     def _add_file_handler(self) -> None:
         """Add file handler to write log to local file"""
-        log_path = "./logs"
+        log_path = Path(__file__).resolve().parents[1].joinpath("logs")
         if not os.path.exists(log_path):
             os.makedirs(log_path)
 
