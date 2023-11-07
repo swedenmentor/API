@@ -7,3 +7,4 @@ key.pem
 offload/
 *.jsonl
 .python-version
+logs/*
