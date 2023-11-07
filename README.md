@@ -36,7 +36,7 @@ The server runs at `localhost:8000`. From browser, go to `localhost:8000/q`, you
 
 # Production deployment
 
-Replace the occurences of `_SITE_` with the intended domain.
+Replace the following occurences of `_SITE_` with the intended domain.
 
 ## DNS
 
@@ -45,12 +45,13 @@ Point `api._SITE_` to server IP. Open port 8000 for TCP requests.
 ## Install SSL certificate for `api._SITE_`
 
 ```bash
-sudo apt get nginx
-sudo git clone https://github.com/certbot/certbot /opt/letsencrypt
+sudo apt install nginx
+sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d api._SITE_
 sudo certbot renew --dry-run
+cp /etc/letsencrypt/live/api._SITE_/fullchain.pem cert.pem
+cp /etc/letsencrypt/live/api._SITE_/privkey.pem key.pem
 ```
-Copy the key file as `key.pem` and the cert file as `cert.pem` to the repo folder.
 
 The frontend server should also have SSL certificate.
 

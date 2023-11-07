@@ -55,7 +55,10 @@ vectorstore = Pinecone(index,
                        text_field)
 
 generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
-                                                      retriever=vectorstore.as_retriever(),
+                                                      retriever=vectorstore.as_retriever(
+                                                          search_kwargs={"k": 4},
+                                                          search_type="mmr",
+                                                          score_threshold=0.3),
                                                       return_source_documents=True)
 print("generate_text(): ready")
 
