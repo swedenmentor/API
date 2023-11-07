@@ -8,7 +8,6 @@ from urllib.parse import urlparse, urljoin                          # for URL pa
 from googletrans import Translator                                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter  # for splitting text into chunks with overlapping
 
-
 #%% 2.Define function to crawl data from the website
 
 class Crawler:
@@ -174,6 +173,72 @@ class Crawler:
                     file.write(entry)
                 self.data_buffer = []
         return
+
+    def extract_json(self, base_url, output_file):
+        """
+        :param base_url: The base URL used to make requests and retrieve JSON data.
+        :type base_url: str
+        :param output_file: The name of the file to which the extracted JSON data will be written.
+        :type output_file: str
+        :return: None
+        :rtype: None
+
+        The `extract_json` method is used to extract JSON data from a given URL and write it to a specified output file. It uses a loop to iterate through the pages of the API, making requests
+        * and extracting the necessary data.
+
+        Within the loop, it checks if the URL has been visited by checking the response status code. If the code is 200, it proceeds to extract the JSON data from the response using the `json
+        *()` method. It then iterates through each item in the JSON data and creates a new dictionary to hold the required fields.
+
+        To extract the necessary fields, it checks if the 'content' key is present in the item and if it contains a 'rendered' key. If so, it retrieves the text by parsing the HTML with BeautifulSoup
+        *. It then splits the text into chunks using a splitter method and adds each chunk to the dictionary.
+
+        Other fields such as 'source', 'title', 'updated', and 'chunk-id' are also added to the dictionary. The dictionary is then appended to a result list, which is stored in a data buffer
+        *.
+
+        After iterating through all the items on the page, the `write_web_element` method is called to write the data from the data buffer to the specified output file.
+
+        The page number is increased for the next iteration, and the loop continues until the response status code is not 200.
+
+        Note: The requests library and BeautifulSoup library are used in this method, so make sure to import them before using this method.
+        """
+        page = 1
+        while True:
+            url = base_url.format(page)
+            response = requests.get(url)
+
+            # Check if the url has been visited
+            if response.status_code == 200:
+                # Extract the JSON data from the response
+                soup = response.json()
+
+                for item in soup:
+                    # Create a new dictionary to hold the required fields
+                    temp_dict = {}
+                    input_text = item['content']['rendered'] if 'content' in item and 'rendered' in item[
+                        'content'] else None
+                    input_text = BeautifulSoup(input_text, 'html.parser').get_text(separator = '\n')
+                    chunks = self.splitter.split_text(input_text)
+
+                    for idx, chunk in enumerate(chunks):
+                        temp_dict[str(idx)] = {
+                            "chunk-id": str(idx),
+                            "source": item['link'],
+                            "title": item['title']['rendered'] if 'title' in item and 'rendered' in item[
+                                'title'] else None,
+                            "chunk": chunk,
+                            "updated": datetime.datetime.strptime(item['date'], "%Y-%m-%dT%H:%M:%S").strftime(
+                                "%Y-%m-%d") if 'date' in item else None,
+                        }
+                    # Append the new dictionary to the result list
+                    self.data_buffer.append(temp_dict)
+
+                self.write_web_element(output_file)
+                # Increase the page number for the next iteration
+                page += 1
+            else:
+                # If the response status code is not 200, break the loop
+                break
+
 
     def extract_web_element(self, output_file, input_file = None, tags = ['p', 'h1', 'h2'], start=0, end=None, special_tags=None, class_name=None):
         """

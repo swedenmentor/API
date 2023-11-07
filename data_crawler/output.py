@@ -1,5 +1,5 @@
 #%% 1.Import crawler module and libraries
-from data_crawler import crawler
+from data_crawler.crawler import Crawler
 import jsonlines
 import os
 
@@ -44,6 +44,16 @@ skatteverket.crawl_links(urls['skatterverket'], depth=max_depth, lang = ['sv', '
 skatteverket.write_visited_urls(os.path.join(file_paths['skatterverket'], 'skatteverket.txt'))
 skatteverket.extract_web_element(output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
 
+
+
+#! Example in studyinsweden
+
+# NOTE: page should be written as {} in the url like page={} not page=1
+url = "https://cms.studyinsweden.se/wp-json/wp/v2/posts?_embed=true&page={}&per_page=12"
+output_file = os.path.join(file_paths['studyinsweden'], 'studyinsweden.jsonl')
+
+studyinsweden = Crawler()
+studyinsweden.extract_json(url = url, output_file = output_file)
 
 
 #%% 4.Merge all results into a single jsonl file
