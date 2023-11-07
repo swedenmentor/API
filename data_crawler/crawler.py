@@ -43,9 +43,6 @@ class Crawler:
         )
         self.data_buffer = []
 
-    def chunk_text(self, input_text):
-        return self.splitter.split_text(input_text)  # Return a list of strings with overlapping
-
     def translate_text(self, text):
         """
         Translate Text
@@ -59,7 +56,7 @@ class Crawler:
 
         """
         output = []
-        for chunk in chunk_text(text):
+        for chunk in self.splitter.split_text(text):
             detected = self.translator.detect(chunk)
             if detected.lang != 'en':
                 translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
@@ -267,7 +264,7 @@ class Crawler:
         """
         urls = []
         if input_file is not None:
-            with open(input_file, 'r') as f:
+            with open(input_file, 'r', encoding='utf-8') as f:
                 urls = [line.strip() for line in f]
         else:
             urls = list(self.visited_urls)
@@ -314,6 +311,7 @@ class Crawler:
                 for key in entries:
                     self.data_buffer.append(entries[key])
                 self.write_web_element(output_file)
+                print(f"Successfully extracted web element from {url_extract}")
 
 
             #! Give error message when connection fails
