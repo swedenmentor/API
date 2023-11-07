@@ -26,12 +26,12 @@ merged_data = os.path.join('data_crawler', 'crawled_data', 'merged_data.jsonl')
 #! Example in migrationsverket
 migration = Crawler()
 output_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.jsonl')
-input_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt')
+# input_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt')
 
 # Extract all links from the website
-#migration.crawl_links(url = urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
+migration.crawl_links(url = urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
 # Export to .txt file if needed
-#migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
+migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
 migration.extract_web_element(input_file = input_file, output_file = output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
 
 
