@@ -28,7 +28,7 @@ migration = Crawler()
 output_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.jsonl')
 
 # Extract all links from the website
-migration.crawl_links(urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
+migration.crawl_links(url = urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
 # Export to .txt file if needed
 migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
 migration.extract_web_element(output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
@@ -39,7 +39,7 @@ skatteverket = Crawler()
 output_file = os.path.join(file_paths['skatterverket'], 'skatteverket.jsonl')
 
 # Extract all links from the website
-skatteverket.crawl_links(urls['skatterverket'], depth=max_depth, lang = ['sv', 'en'])
+skatteverket.crawl_links(url = urls['skatterverket'], depth=max_depth, lang = ['sv', 'en'])
 # Export to .txt file if needed
 skatteverket.write_visited_urls(os.path.join(file_paths['skatterverket'], 'skatteverket.txt'))
 skatteverket.extract_web_element(output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
@@ -53,8 +53,8 @@ url = "https://cms.studyinsweden.se/wp-json/wp/v2/posts?_embed=true&page={}&per_
 output_file = os.path.join(file_paths['studyinsweden'], 'studyinsweden.jsonl')
 
 studyinsweden = Crawler()
-studyinsweden.extract_json(url = url, output_file = output_file)
-
+studyinsweden.extract_json(base_url = url, output_file = output_file)
+studyinsweden.write_visited_urls(os.path.join(file_paths['studyinsweden'], 'studyinsweden.txt'))
 
 #%% 4.Merge all results into a single jsonl file
 with jsonlines.open(merged_data, mode='w') as writer:

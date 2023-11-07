@@ -117,6 +117,8 @@ class Crawler:
             if not response.status_code == 200:
                 print(f'Non success status for url {url}')
                 return
+            else:
+                print(f'Successful connection to url: {url}')
             self.visited_urls.add(url)  # Add url to visited_urls set
 
             # ! Extract web elmements
@@ -139,7 +141,7 @@ class Crawler:
             for link in links:
                 href = link.get('href')
                 if href == None or len(href) == 0 or href[0] == '#': continue
-                if href.lower().endswith(('.xml', '.pdf')): continue
+                if href.lower().endswith(('.xml', '.pdf', '.jpg', '.png', '.zip', '.printable', '.contenttype=text/xml;charset=UTF-8')): continue
                 if href and href.startswith('http'):
                     new_url = href
                 else:
@@ -216,6 +218,9 @@ class Crawler:
                     temp_dict = {}
                     input_text = item['content']['rendered'] if 'content' in item and 'rendered' in item[
                         'content'] else None
+                    sub_url = item['link']
+                    print(f'Successful extract and add the url: {sub_url}')
+                    self.visited_urls.add(sub_url)
                     input_text = BeautifulSoup(input_text, 'html.parser').get_text(separator = '').replace('\n', ' ').replace('\r', '').strip()
                     chunks = self.splitter.split_text(input_text)
 
