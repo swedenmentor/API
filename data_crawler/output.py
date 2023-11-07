@@ -23,14 +23,26 @@ urls = {
 merged_data = os.path.join('data_crawler', 'crawled_data', 'merged_data.jsonl')
 
 #%% 3.Crawling data and write to a final jsonl file
+#! Example in migrationsverket
 migration = Crawler()
 output_file = os.path.join(file_paths['migrationsverket'], 'migrationsverket.jsonl')
 
 # Extract all links from the website
 migration.crawl_links(urls['migrationsverket'], depth=max_depth, lang = ['sv', 'en'])
-#! Export to .txt file if needed
+# Export to .txt file if needed
 migration.write_visited_urls(os.path.join(file_paths['migrationsverket'], 'migrationsverket.txt'))
-migration.extract_web_element(output_file, web_element = ['p', 'h1', 'h2'])
+migration.extract_web_element(output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
+
+
+#! Example in skatteverket
+skatteverket = Crawler()
+output_file = os.path.join(file_paths['skatterverket'], 'skatteverket.jsonl')
+
+# Extract all links from the website
+skatteverket.crawl_links(urls['skatterverket'], depth=max_depth, lang = ['sv', 'en'])
+# Export to .txt file if needed
+skatteverket.write_visited_urls(os.path.join(file_paths['skatterverket'], 'skatteverket.txt'))
+skatteverket.extract_web_element(output_file, tags = ['p', 'h1', 'h2', 'h3', 'ul'], special_tags = 'ul', class_name = 'normal')
 
 
 

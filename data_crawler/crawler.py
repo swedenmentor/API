@@ -175,7 +175,7 @@ class Crawler:
                 self.data_buffer = []
         return
 
-    def extract_web_element(self, output_file, input_file = None, web_element = ['p', 'h1', 'h2'], start=0, end=None):
+    def extract_web_element(self, output_file, input_file = None, tags = ['p', 'h1', 'h2'], start=0, end=None, special_tags=None, class_name=None):
         """
         Crawls a website starting from a specified URL and extracts information,
         creating an entry for each visited webpage and writing the information to a file.
@@ -212,7 +212,11 @@ class Crawler:
 
                 #! Extract web elmements
                 soup = BeautifulSoup(response.text, 'html.parser')
-                paragraphs = soup.find_all(web_element)
+                if special_tags is not None and class_name is not None:
+                    paragraphs = [tag for tag in soup.find_all(tags) if
+                                  not (tag.name in special_tags and tag.get('class') != [class_name])]
+                else:
+                    paragraphs = soup.find_all(tags)
                 text = " ".join([p.get_text().strip() for p in paragraphs])
 
 
