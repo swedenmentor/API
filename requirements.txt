@@ -1,4 +1,5 @@
 transformers==4.30
+ctransformers==0.2.27
 sentence-transformers==2.2.2
 pinecone-client==2.2.2
 datasets==2.14.0

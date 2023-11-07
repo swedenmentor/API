@@ -5,7 +5,6 @@ model_id = "TheBloke/Llama-2-7B-chat-GGML"
 #model_id = "TheBloke/Llama-2-13B-chat-GGML"
 
 from ctransformers import AutoModelForCausalLM
-import torch
 
 config = {'max_new_tokens': 256, 'repetition_penalty': 1.1, 'temperature': 0.1, 'stream': True}
 
@@ -17,6 +16,11 @@ generate_text = AutoModelForCausalLM.from_pretrained(model_id,
                                            **config
                                            )
 
-# 'pipeline' execution
-#res = generate_text(prompt, stream=False)
-#print(res)
+print("LLM: ready")
+
+#import time
+#start_time = time.time()
+## 'pipeline' execution                                                                                                             
+#for word in generate_text("What is machine learning?", stream=True):
+#    print(word, end='', flush=True)
+#print("--- %s seconds ---" % (time.time() - start_time))
