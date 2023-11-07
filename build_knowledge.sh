@@ -2,7 +2,7 @@
 cd data_crawler
 
 # run python scripts sequentially
-python crawler.py
-python output.py
-python pinecone_upload.py
+
+python crawl_output.py
+python data_crawler/pinecone_upload.py
 
