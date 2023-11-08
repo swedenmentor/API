@@ -2,7 +2,8 @@ import os
 import sys
 import datetime
 from logging import Logger, StreamHandler, Formatter, FileHandler
-from typing import Self
+#from typing import Self
+from typing_extensions import Self
 from pathlib import Path
 
 
