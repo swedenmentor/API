@@ -50,15 +50,15 @@ if index_name not in pinecone.list_indexes():
 index = pinecone.Index(index_name)
 
 #%% 4.Load data and index to Pinecone
-data = pd.read_json('data_crawler/crawled_data/merged_data.jsonl', lines=True)
+data = pd.read_json('crawled_data/universityadmissions.jsonl', lines=True)
 
-batch_size = 2
+batch_size = 16
 
-for i in range(0, 8, batch_size):
+for i in range(0, len(data), batch_size):
     print(i)
     i_end = min(len(data), i+batch_size)
     batch = data.iloc[i:i_end]
-    ids = [f"{x['source']}-{x['chunk-id']}" for i, x in batch.iterrows()]
+    ids = [f"migrationsverket-{j}" for j, x in batch.iterrows()]
     texts = [x['chunk'] for i, x in batch.iterrows()]
     embeds = embed_model.embed_documents(texts)
     # get metadata to store in Pinecone
