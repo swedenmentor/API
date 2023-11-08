@@ -6,7 +6,7 @@ Frontend repo: [tuananhdao/chat.duhocsinh.webUI](https://github.com/tuananhdao/c
 - Pinecone-GPT3: ChatGPT API for LLM, Pinecone for Vector DB
 - Weaviate-Llamma2: self-hosted Llama 2 for LLM, self-hosted Weaviate for Vector DB
 
-![roadmap.png](roadmap.png)
+![roadmap.png](archive/roadmap.png)
 
 # Testing on local machines
 

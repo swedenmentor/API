@@ -7,10 +7,10 @@ import os
 max_depth = 10
 
 file_paths = {
-    'chiaselund': os.path.join('data_crawler', 'crawled_data'),
-    'migrationsverket': os.path.join('data_crawler', 'crawled_data'),
-    'skatterverket': os.path.join('data_crawler', 'crawled_data'),
-    'studyinsweden': os.path.join('data_crawler', 'crawled_data')
+    'chiaselund': os.path.join('../data_crawler', 'crawled_data'),
+    'migrationsverket': os.path.join('../data_crawler', 'crawled_data'),
+    'skatterverket': os.path.join('../data_crawler', 'crawled_data'),
+    'studyinsweden': os.path.join('../data_crawler', 'crawled_data')
 }
 
 urls = {
@@ -20,7 +20,7 @@ urls = {
     'studyinsweden': 'https://studyinsweden.se/',
 }
 
-merged_data = os.path.join('data_crawler', 'crawled_data', 'merged_data.jsonl')
+merged_data = os.path.join('../data_crawler', 'crawled_data', 'merged_data.jsonl')
 
 #%% 3.Crawling data and write to a final jsonl file
 

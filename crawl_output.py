@@ -63,3 +63,7 @@ with jsonlines.open(merged_data, mode='w') as writer:
         with jsonlines.open(fp, mode='r') as reader:
             for obj in reader:
                 writer.write(obj)
+
+
+if __name__ == "__main__":
+    main()
