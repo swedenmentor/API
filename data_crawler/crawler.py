@@ -179,7 +179,7 @@ class Crawler:
             # ! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            paragraphs = soup.find_all(['p', 'h1', 'h2'])
+            paragraphs = soup.find_all(['p', 'h1', 'h2']) # For StudyinSweden also needs h3
             check_lang = "\n".join([p.get_text().strip() for p in paragraphs])
             check_lang = check_lang[:1000]  # take first 1000 characters to assess the language
 
@@ -195,7 +195,7 @@ class Crawler:
             # Recursively crawl each of the links found on the page
             for link in links:
                 href = link.get('href')
-                if href == None or len(href) == 0 or href[0] == '#': continue
+                if (href == None) or (len(href)==0) or ('#' in href): continue
                 if href.lower().endswith(('.xml', '.pdf', '.jpg', '.png', '.zip', '.printable', '.contenttype=text/xml;charset=UTF-8')): continue
                 if href and href.startswith('http'):
                     new_url = href
