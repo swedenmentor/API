@@ -102,4 +102,5 @@ def build_prompt(messages):
                 break
             chat_history.insert(0, (formatted_question, formatted_response))
             num_char_in_chat_history += len(formatted_question) + len(formatted_response)
-    return {"question": messages[-1]['content'], "chat_history": chat_history}
+    #return {"question": messages[-1]['content'], "chat_history": chat_history}
+    return {"question": messages[-1]['content'], "chat_history": []}
