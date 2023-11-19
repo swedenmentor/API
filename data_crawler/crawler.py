@@ -11,56 +11,45 @@ from urllib.parse import urlparse, urljoin                          # for URL pa
 from googletrans import Translator                                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter  # for splitting text into chunks with overlapping
 from utils.custom_logger import CustomLogger
+import random
+import re
+from bs4.element import Tag
+
+
+SUPPORTED_LANGUAGES = ['sv', 'en']
 
 
 #%% 2.Define function to crawl data from the website
 
 class Crawler:
-    """
-    A Crawler class that crawls through websites and performs translation on the collected data.
-
-    Attributes:
-    visited_urls (set): A set to hold the URLs already visited by the crawler.
-    translator (Translator): A Translator object to perform translations.
+    """Master Crawler class
     """
     def __init__(
             self, 
-            logger: CustomLogger = None
-        ):
-        """
-
-        Initialize the object of the class.
-
-        :param self: The object itself.
-        :return: None
-
-        This method initializes the object of the class by initializing the instance variables with appropriate values. It initializes the `visited_urls` set to store unique values. It also
-        * initializes the `translator` object which is used for translation purposes. Additionally, it initializes the `splitter` object which is responsible for splitting texts into chunks
-        *. Finally, it initializes the `data_buffer` list.
-
-        Example usage:
-            >>> obj = ClassName()
-        """
-        self.visited_urls = set() #! Set is a data structure that stores unique values
-        self.translator = Translator()
-        self.splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
-            chunk_overlap = 200,
-            length_function = len,
-            is_separator_regex = False
-        )
-        self.data_buffer = []
-        self.logger = logger or CustomLogger(name=self.__class__.__name__, write_local=False)
-        # Added for future use
-        # self.session = self.get_session(total_retries, backoff_factor, status_forcelist)
-    
-    
-    def get_session(
-            self, 
             total_retries: int = 3, 
             backoff_factor: float = 0.1, 
-            status_forcelist: list[int] = [500, 502, 503, 504, 429]
-        ):
+            status_forcelist: list[int] = [500, 502, 503, 504, 429],
+            logger: CustomLogger = None
+    ):
+        
+        self.target_urls = set()    # Set of URLs to be crawled
+        self.visited_urls = set()   # Set of URLs visited
+        self.translator = Translator()
+        # self.splitter = RecursiveCharacterTextSplitter(
+        #     chunk_size=1000,
+        #     chunk_overlap=200,
+        #     length_function=len,
+        #     is_separator_regex=False
+        # )
+        self.data_buffer = []
+        self.logger = logger or CustomLogger(name=self.__class__.__name__, write_local=False) 
+        
+        self.total_retries = total_retries
+        self.backoff_factor = backoff_factor
+        self.status_forcelist = status_forcelist
+        self.session = self.get_session()
+    
+    def get_session(self):
         """Generate a session object with retry settings.
 
         Parameters
@@ -75,14 +64,32 @@ class Crawler:
             List of status codes that will trigger a retry.
         """
         retries = urllib3.Retry(
-            total=total_retries, 
-            backoff_factor=backoff_factor, 
-            status_forcelist=status_forcelist
+            total=self.total_retries, 
+            backoff_factor=self.backoff_factor, 
+            status_forcelist=self.status_forcelist
         )
         adapter = HTTPAdapter(max_retries=retries)
-        self.session = requests.Session()
-        self.session.mount('http://', adapter)
+        session = requests.Session()
+        session.mount('http://', adapter)
 
+        return session
+        
+    def get_url(self, url: str): 
+        """Get the response from a URL.
+
+        Parameters
+        ----------
+        url : str
+            The URL to get the response from.
+        """
+        
+        response = self.session.get(url)
+        try:
+            response.raise_for_status()
+        except (HTTPError, RequestException, ConnectionError) as err:
+            self.logger.error(f'Error when connecting: {err}')
+        else:
+            return response
 
     def translate_text(self, text):
         """
@@ -128,36 +135,50 @@ class Crawler:
             for url in self.visited_urls:
                 f.write(f'{url}\n')
 
-    def crawl_links(self, url, depth = 10, lang = ['sv', 'en']):
+
+    def page_language_supported(self, soup: BeautifulSoup) -> bool:
+        """Check if the page is written in a supported language (Defined by the SUPPORTED_LANGUAGE variable)
+
+        Parameters
+        ----------
+        soup : BeautifulSoup
+            A BeautifulSoup object representing the text content
+
+        Returns
+        -------
+        bool
         """
-        :param url: The URL to crawl and extract links from.
-        :type url: str
-        :param depth: The maximum depth of recursion when crawling links. Default value is 5.
-        :type depth: int
-        :param lang: The list of supported languages. Only crawl links from pages written in one of these languages. Default value is ['sv', 'en'].
-        :type lang: list[str]
-        :return: None
-        :rtype: None
+        paragraphs = soup.find_all(['p', 'h1', 'h2', 'h3'])
+        check_lang = "\n".join([p.get_text().strip() for p in paragraphs])[:1000]
 
-        This method crawls the given URL and extracts links from the web page. It recursively crawls each of the links found on the page up to a maximum depth specified by the `depth` parameter
-        *. The method also checks if the web page is written in a supported language specified by the `lang` parameter before crawling the links.
+        detected = self.translator.detect(check_lang)
+        
+        if detected.lang not in SUPPORTED_LANGUAGES:
+            self.logger.warning(f'The page is written in an unsupported language: {detected.lang}')
+            return False
+        else:
+            return True
 
-        If the depth parameter is 0 or the URL has already been visited, the method returns without crawling further.
 
-        If the connection to the URL fails or the HTTP response status is not 200, an error message is printed.
+    def crawl_links(self, url: str, depth: int = 10, base_url: str = ''):
+        """Recursively crawl links in a web site, and return a list of URLs.
 
-        The method uses the `requests` library to make HTTP requests and the `BeautifulSoup` library to parse the HTML content of the web page.
-
-        Example usage:
-
-            crawl_links('https://www.example.com', depth=3, lang=['en', 'fr', 'es'])
-
-        This will crawl the web page at 'https://www.example.com' and recursively crawl each link found on the page up to a depth of 3. Only links from pages written in English, French, or Spanish
-        * will be crawled.
+        Parameters
+        ----------
+        url : str
+        depth : int, optional
+            The depth that we want to go, by default 10 pages.
+        base_url : str, optional
+            The base url to be used if the href attributes are relative path instead of full URL.
         """
+
 
         # ! Check if the depth is 0 or the url has been visited
-        if (depth == 0) or (url in self.visited_urls):
+        if url in self.target_urls:
+            self.logger.info("URL existed - skip.")
+            return
+        if depth == 0:
+            self.logger.info("No depth to travel.")
             return
         
         self.logger.info(f'Visiting: {url}')
@@ -168,45 +189,38 @@ class Crawler:
         except (HTTPError, RequestException, ConnectionError) as err:
             self.logger.error(f'Error when connecting: {err}')
             return
-
         else:
-            self.visited_urls.add(url)  # Add url to visited_urls set
+            self.target_urls.add(url)  # Add the URL to the result set if it is valid
 
-        # TODO: Add more detailed error handling. Should not try to do 
-        # too many things in one try block
+        
+        # Check if the website has supported languages
         self.logger.info("Parsing response...")
-        try:
-            # ! Extract web elmements
-            soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-            paragraphs = soup.find_all(['p', 'h1', 'h2']) # For StudyinSweden also needs h3
-            check_lang = "\n".join([p.get_text().strip() for p in paragraphs])
-            check_lang = check_lang[:1000]  # take first 1000 characters to assess the language
+        if self.page_language_supported(soup) is False:
+            return
 
-            # Check if the website has supported languages
-            detected = self.translator.detect(check_lang)
-            if detected.lang not in lang:
-                self.logger.error(f'Page at {url} is written in an unsupported language: {detected.lang}')
-                return
+        # Use recursion to find all links
+        links = soup.find_all('a')
 
-            # ! Recursion
-            # Find all links on the page
-            links = soup.find_all('a')
-            # Recursively crawl each of the links found on the page
-            for link in links:
-                href = link.get('href')
-                if (href == None) or (len(href)==0) or ('#' in href): continue
-                if href.lower().endswith(('.xml', '.pdf', '.jpg', '.png', '.zip', '.printable', '.contenttype=text/xml;charset=UTF-8')): continue
-                if href and href.startswith('http'):
-                    new_url = href
-                else:
-                    new_url = urljoin(url, href)
-                if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
-                    time.sleep(0.01)  #TODO: Use a better rate limiting method
-                    self.crawl_links(new_url, depth = depth - 1)
+        for link in links:
+            href = link.get('href')
 
-        except Exception as e:
-            self.logger.error(f"An error occurred while processing {url}: {str(e)}")
+            if (href is None) or (len(href)==0) or ('#' in href): 
+                continue
+
+            exc_patterns = ('.xml', '.pdf', '.jpg', '.png', '.zip', '.printable', '.contenttype=text/xml;charset=UTF-8')
+            if href.lower().endswith(exc_patterns): 
+                continue
+
+            if href and href.startswith('http'):
+                new_url = href
+            else:
+                new_url = urljoin(base_url, href)
+            
+            if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
+                time.sleep(random.randint(0, 10) / 100)  
+                self.crawl_links(new_url, depth=depth - 1)
 
 
     def write_web_element(self, output_file):
@@ -336,28 +350,30 @@ class Crawler:
             # too many things in one try block
 
             self.logger.info("Parsing response...")
+            
+            #! Extract web elmements
+            soup = BeautifulSoup(response.text, 'html.parser')
+            if special_tags is not None and class_name is not None:
+                paragraphs = [tag for tag in soup.find_all(tags) if
+                                not (tag.name in special_tags and tag.get('class') != [class_name])]
+            else:
+                paragraphs = soup.find_all(tags)
+            text = " ".join([p.get_text().strip() for p in paragraphs])
+
+
+            # TODO: Find all date tags for all websites
+            date_tag = soup.find('p', class_ = 'ahjalpfunktioner')
+            if date_tag:
+                time_tag = date_tag.find('time')
+                date = time_tag.get_text() if time_tag else datetime.datetime.now().strftime("%Y-%m-%d")
+            else:
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+            title = soup.title.text.strip()
+            title = self.translate_text(title)
+            chunks = self.translate_text(text)
+            
             try:
-                #! Extract web elmements
-                soup = BeautifulSoup(response.text, 'html.parser')
-                if special_tags is not None and class_name is not None:
-                    paragraphs = [tag for tag in soup.find_all(tags) if
-                                  not (tag.name in special_tags and tag.get('class') != [class_name])]
-                else:
-                    paragraphs = soup.find_all(tags)
-                text = " ".join([p.get_text().strip() for p in paragraphs])
-
-
-                # TODO: Find all date tags for all websites
-                date_tag = soup.find('p', class_ = 'ahjalpfunktioner')
-                if date_tag:
-                    time_tag = date_tag.find('time')
-                    date = time_tag.get_text() if time_tag else datetime.datetime.now().strftime("%Y-%m-%d")
-                else:
-                    date = datetime.datetime.now().strftime("%Y-%m-%d")
-
-                title = soup.title.text.strip()
-                title = self.translate_text(title)
-                chunks = self.translate_text(text)
 
                 entries = {}
                 for idx, chunk in enumerate(chunks):

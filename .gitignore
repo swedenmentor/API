@@ -10,3 +10,4 @@ offload/
 *.jsonl
 .python-version
 logs/*
+data/*
