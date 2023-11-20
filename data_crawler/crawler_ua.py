@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ua_crawler = Crawler()
-project_dir = Path(__file__).parent
+project_dir = Path(__file__).parent.parent
 urls_file = project_dir / "data/target_urls.txt"
 
 
@@ -19,7 +19,7 @@ urls = [
 base_url = "https://www.universityadmissions.se"
 
 for url in urls:
-    ua_crawler.crawl_links(url, 5, base_url, exclude_urls=['https://www.universityadmissions.se/intl/search'])
+    ua_crawler.crawl_links(url, 10, base_url, exclude_urls=['https://www.universityadmissions.se/intl/search'])
 ua_crawler.write_urls(ua_crawler.target_urls, urls_file)
 
 #%%

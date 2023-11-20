@@ -5,7 +5,8 @@ import urllib3
 import datetime                                                     # for dealing with dates and times
 import jsonlines                                                    # for handling JSONL format
 import random
-from enum import Enum
+import os
+from pathlib import Path
 
 from bs4 import BeautifulSoup                                     # for web scraping, parsing HTML
 from bs4.element import Tag
@@ -37,6 +38,11 @@ def write_jsonl(input_entries: list[dict], output_file: str, write_mode: WriteMo
         - 'APPEND' to append new content to the file
         - 'OVERWRITE' to overwrite content of the file
     """
+
+    folder = Path(output_file).parent
+
+    if not folder.exists():
+        os.makedirs(folder)
 
     with jsonlines.open(output_file, write_mode) as f:
         for entry in input_entries:
@@ -259,6 +265,11 @@ class Crawler:
         url_list : list[str]
         output_file : str
         """
+        folder = Path(output_file).parent
+
+        if not folder.exists():
+            os.makedirs(folder)
+            
         with open(output_file, mode=write_mode, encoding='utf-8') as f:
             for url in url_list:
                 f.write(f"{url}\n")
