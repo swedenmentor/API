@@ -20,7 +20,7 @@ def chunk_text(input_text):
     """
     # This part is deposited for writing chunk_text from Langchain library
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 4000,
+        chunk_size = 1000,
         chunk_overlap = 200,
         length_function = len,
         is_separator_regex = False
@@ -55,7 +55,7 @@ class Crawler:
                     file.write(entry)
                 self.data_buffer = []
         return
-    def translate_text(self, text):
+    def translate_text(self, text, lang = 'en'):
         """
         Translate Text
 
@@ -69,8 +69,9 @@ class Crawler:
         """
         output = []
         for chunk in chunk_text(text):
-            detected = self.translator.detect(chunk)
-            if detected.lang != 'en':
+            #detected = self.translator.detect(chunk) #Temporarily disable this
+            if lang != 'en':
+                detected = self.translator.detect(chunk)
                 translated_chunk = self.translator.translate(chunk, src = detected.lang, dest = 'en').text
                 output.append(translated_chunk)
             else:
@@ -112,7 +113,7 @@ class Crawler:
                 print(f'Non success status for url {url}')
                 return
             self.visited_urls.add(url) # Add url to visited_urls set
-
+            print(url)
             #! Extract web elmements
             soup = BeautifulSoup(response.text, 'html.parser')
             paragraphs = soup.find_all(['p', 'h1', 'h2'])
@@ -133,8 +134,8 @@ class Crawler:
                 date = datetime.datetime.now().strftime("%Y-%m-%d")
 
             title = soup.title.text.strip()
-            title = self.translate_text(title)
-            chunks = self.translate_text(text)
+            title = self.translate_text(title, lang = detected.lang)
+            chunks = self.translate_text(text, lang = detected.lang)
 
             entries = {}
             for idx, chunk in enumerate(chunks):
@@ -155,16 +156,18 @@ class Crawler:
             # Recursively crawl each of the links found on the page
             for link in links:
                 href = link.get('href')
-                if href == None or len(href)==0 or href[0]=='#': continue
+                if (href == None) or (href == '/') or \
+                    (len(href)==0) or ('#' in href)\
+                    or ('Other-languages/' in href): continue
+                if href.lower().endswith(('.xml', '.pdf', '.jpg', '.png', '.zip', '.printable', '.contenttype=text/xml;charset=UTF-8')): continue                
                 if href and href.startswith('https'):
                     new_url = href
                 else:
                     new_url = urljoin(url, href)
                 if not new_url.startswith('https://www.migrationsverket.se/English'):
                     continue
-                print(new_url)
                 if urlparse(new_url).netloc == urlparse(url).netloc and new_url not in self.visited_urls:
-                    time.sleep(0.1)
+                    time.sleep(0.01)
                     self.crawl_website(new_url, output_file, depth=depth - 1)
 
         #! Give error message when connection fails
@@ -187,6 +190,6 @@ if __name__ == '__main__':
     max_depth = 10
     url = 'https://www.migrationsverket.se/English.html'
     output_file = 'migrationsverket.jsonl'
-
+    with open(output_file, 'w'):pass
     # Crawling
     crawler.crawl_website(url, output_file=output_file, depth=max_depth)
