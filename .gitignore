@@ -11,3 +11,4 @@ offload/
 .python-version
 logs/*
 data/*
+workpad/*
