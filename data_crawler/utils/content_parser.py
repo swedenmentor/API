@@ -39,11 +39,11 @@ def handle_table(elm: Tag) -> str:
         for row in rows_elm:
             row_values = row.find_all(['td', 'th'])
             table.append(tuple(val.text for val in row_values))
-            table_str += ' - '.join([clean_text(val.text) for val in row_values]) + ';\n'
+            table_str += ' - '.join([val.get_text(strip=True) for val in row_values]) + ';\n'
         return table_str
 
     else:
-        return None
+        return ''
 
 
 def handle_list(elm: Tag) -> str:
@@ -66,10 +66,10 @@ def handle_list(elm: Tag) -> str:
         list_items = elm.find_all('li')
         list_str = ''
         for item in list_items:
-            list_str += '- ' + clean_text(item.text) + '\n'
+            list_str += '- ' + item.get_text(strip=True) + '\n'
         return list_str
     else:
-        return None
+        return ''
 
 # def join_url(*args):
 #     def join_slash(a: str, b: str):
@@ -100,7 +100,7 @@ def handle_url(elm: Tag, base_url: str = '') -> str:
     str
         
     """
-    elm_text = clean_text(elm.text).strip(' \r\n')
+    elm_text = elm.get_text(strip=True)
     
     if elm.name == 'a' and elm.has_attr('href'):
         if elm['href'].startswith('http'):
@@ -109,5 +109,16 @@ def handle_url(elm: Tag, base_url: str = '') -> str:
             url_str = f"[{elm_text}]({urljoin(base_url, elm['href'])})"
         return url_str
     else:
-        return None
+        return ''
 
+
+def parse_content(elm: Tag, base_url='') -> str:
+    if elm.name == 'table':
+        text = handle_table(elm)
+    elif elm.name == 'a':
+        text = handle_url(elm, base_url=base_url)
+    elif elm.name in ['ul', 'ol']:
+        text = handle_list(elm)
+    else:
+        text = elm.get_text(strip=True)
+    return text
