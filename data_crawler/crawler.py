@@ -11,7 +11,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup                                     # for web scraping, parsing HTML
 from bs4.element import Tag
 from requests.adapters import HTTPAdapter
-from requests.exceptions import HTTPError, RequestException, ConnectionError
+from requests.exceptions import HTTPError, RequestException, ConnectionError, ReadTimeout
 from urllib.parse import urlparse, urljoin                          # for URL parsing and joining
 from googletrans import Translator                                  # for text translation using Google Translate API
 from langchain.text_splitter import RecursiveCharacterTextSplitter  # for splitting text into chunks with overlapping
@@ -109,7 +109,7 @@ class Crawler:
         response = self.session.get(url, timeout=timeout)
         try:
             response.raise_for_status()
-        except (HTTPError, RequestException, ConnectionError) as err:
+        except (HTTPError, RequestException, ConnectionError, ReadTimeout) as err:
             self.logger.error(f'Error when connecting: {err}')
         else:
             return response
@@ -170,7 +170,7 @@ class Crawler:
         bool
         """
         paragraphs = soup.find_all(['p', 'h1', 'h2', 'h3'])
-        check_lang = "\n".join([p.get_text().strip() for p in paragraphs])[:1000]
+        check_lang = "\n".join([parser.clean_text(p.get_text()) for p in paragraphs])[:1000]
 
         detected = self.translator.detect(check_lang)
         
@@ -218,7 +218,7 @@ class Crawler:
         try:
             # Check if the url is valid
             response.raise_for_status()
-        except (HTTPError, RequestException, ConnectionError) as err:
+        except (HTTPError, RequestException, ConnectionError, ReadTimeout) as err:
             self.logger.error(f'Error when connecting: {err}')
             return
         else:
@@ -269,7 +269,7 @@ class Crawler:
 
         if not folder.exists():
             os.makedirs(folder)
-            
+
         with open(output_file, mode=write_mode, encoding='utf-8') as f:
             for url in url_list:
                 f.write(f"{url}\n")
@@ -311,7 +311,7 @@ class Crawler:
                 # Safely get contents from json
                 title = item.get('title', {}).get('rendered')
                 rendered_content = item.get('content', {}).get('rendered')
-                full_text = BeautifulSoup(rendered_content, 'html.parser').get_text(separator='', strip=True)
+                full_text = parser.clean_text(BeautifulSoup(rendered_content, 'html.parser').get_text(separator='').strip())
                 sub_url = item.get('link')
                 updated_date = datetime.datetime.strptime(item['date'], "%Y-%m-%dT%H:%M:%S") \
                     .strftime("%Y-%m-%d") if 'date' in item else None

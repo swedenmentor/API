@@ -39,7 +39,7 @@ def handle_table(elm: Tag) -> str:
         for row in rows_elm:
             row_values = row.find_all(['td', 'th'])
             table.append(tuple(val.text for val in row_values))
-            table_str += ' - '.join([val.get_text(strip=True) for val in row_values]) + ';\n'
+            table_str += ' - '.join([clean_text(val.get_text()) for val in row_values]) + ';\n'
         return table_str
 
     else:
@@ -66,7 +66,7 @@ def handle_list(elm: Tag) -> str:
         list_items = elm.find_all('li')
         list_str = ''
         for item in list_items:
-            list_str += '- ' + item.get_text(strip=True) + '\n'
+            list_str += '- ' + clean_text(item.get_text()) + '\n'
         return list_str
     else:
         return ''
@@ -100,7 +100,7 @@ def handle_url(elm: Tag, base_url: str = '') -> str:
     str
         
     """
-    elm_text = elm.get_text(strip=True)
+    elm_text = clean_text(elm.get_text())
     
     if elm.name == 'a' and elm.has_attr('href'):
         if elm['href'].startswith('http'):
@@ -120,5 +120,5 @@ def parse_content(elm: Tag, base_url='') -> str:
     elif elm.name in ['ul', 'ol']:
         text = handle_list(elm)
     else:
-        text = elm.get_text(strip=True)
+        text = clean_text(elm.get_text())
     return text
