@@ -86,9 +86,18 @@ def text_transform(res):
         if 'kwargs' in doc:
             source_documents.append(doc['kwargs']['metadata'])
     return json.dumps({
+        'choices': [ {
+                'index': 0,
+                'message': res['answer'],
+                'context': '',
+                'session_state': None
+            }]
+    })
+
+"""     return json.dumps({
         'result': res['answer'],
         'source_documents': source_documents
-    })
+    }) """
 
 def build_prompt(messages):
     chat_history = []
