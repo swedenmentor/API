@@ -48,18 +48,34 @@ print("Embed model: ready")
 
 from langchain.vectorstores import Pinecone
 from langchain.chains import ConversationalRetrievalChain
+from langchain.prompts import PromptTemplate
 
 text_field = 'text'  # field in metadata that contains text content                              
 vectorstore = Pinecone(index,
                        embed_model,
                        text_field)
 
+prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. For every sentence you answer, cite the source by including its URL inside square brackets. Do not include a source list.
+
+{context}
+
+Question: {question}
+Helpful Answer:"""
+QA_PROMPT = PromptTemplate(
+    template=prompt_template, input_variables=["context", "question"]
+)
+document_prompt = PromptTemplate(input_variables=["page_content", "source"], template="\n\nSource URL: {source}\n{page_content}")
+
 generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
-                                                      retriever=vectorstore.as_retriever(
-                                                          search_kwargs={"k": 4},
-                                                          search_type="mmr",
-                                                          score_threshold=0.3),
-                                                      return_source_documents=True)
+                                                        retriever=vectorstore.as_retriever(
+                                                            search_kwargs={"k": 4},
+                                                            search_type="mmr",
+                                                            score_threshold=0.3),
+                                                        combine_docs_chain_kwargs={
+                                                            'prompt': QA_PROMPT,
+                                                            'document_prompt': document_prompt
+                                                        },
+                                                        return_source_documents=True)
 print("generate_text(): ready")
 
 #######################
@@ -92,7 +108,8 @@ def text_transform(res):
                     'content': res['answer']
                 },
                 'context': {
-                    'followup_questions': []
+                    'followup_questions': [],
+                    'data_points': source_documents
                 },
                 'session_state': None
             }]
