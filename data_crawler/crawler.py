@@ -215,14 +215,7 @@ class Crawler:
 
         self.logger.info(f'Visiting: {url}')
         response = self.get_url(url)
-        try:
-            # Check if the url is valid
-            response.raise_for_status()
-        except (HTTPError, RequestException, ConnectionError, ReadTimeout) as err:
-            self.logger.error(f'Error when connecting: {err}')
-            return
-        else:
-            self.target_urls.add(url)  # Add the URL to the result set if it is valid
+        self.target_urls.add(url)  # Add the URL to the result set if it is valid
 
         # Check if the website has supported languages
         soup = BeautifulSoup(response.text, 'html.parser')
