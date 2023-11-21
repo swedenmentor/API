@@ -88,8 +88,12 @@ def text_transform(res):
     return json.dumps({
         'choices': [ {
                 'index': 0,
-                'message': res['answer'],
-                'context': '',
+                'message': {
+                    'content': res['answer']
+                },
+                'context': {
+                    'followup_questions': []
+                },
                 'session_state': None
             }]
     })
