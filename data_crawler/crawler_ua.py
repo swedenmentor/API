@@ -12,8 +12,7 @@ urls_file = project_dir / "data/target_urls.txt"
 
 
 urls = [
-    "https://www.universityadmissions.se/en/key-dates-and-deadlines/spring-semester-dates/",
-    "https://www.universityadmissions.se/en/fees-scholarships-residence-permit/",
+    "https://www.universityadmissions.se/intl/start"
 ]
 
 base_url = "https://www.universityadmissions.se"
