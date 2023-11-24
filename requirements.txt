@@ -21,3 +21,6 @@ requests==2.31.0
 jsonlines==4.0.0
 googletrans==4.0.0-rc1
 langdetect==1.0.9
+h11==0.13.0
+fastapi==0.95.2
+Hypercorn==0.15.0
