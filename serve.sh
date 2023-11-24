@@ -6,5 +6,5 @@ if [ -f "$SSL_CERT_FILE" ]; then
     hypercorn --keyfile $SSL_KEY_FILE --certfile $SSL_CERT_FILE --bind 0.0.0.0:8000 stream_api:app
 else
     #flask --app api run -h 0.0.0.0 -p 8000
-    hypercorn --bind 0.0.0.0:8000 --reload stream_api:app
+    hypercorn --bind 0.0.0.0:8000 stream_api:app
 fi

@@ -41,10 +41,10 @@ async def run(prompt):
 
     await task
     #stream_callback.done.clear()
+    await asyncio.sleep(0.1)
     yield '{"choices": [{"index": 0, "delta": {"content": "'+batch_string+'"}, "context": {"followup_questions": []}, "session_state": null}]}'
     await asyncio.sleep(0.1)
     yield '{"choices": [{"index": 0, "delta": {}, "context": {"followup_questions": []}, "session_state": null}]}'
-    await asyncio.sleep(0.1)
     
     # yield '{"choices": [{"index": 0, "delta": {"content": " end"}, "context": {"followup_questions": [], "data_points": []}, "session_state": null}]}'
     # await asyncio.sleep(0.1)
