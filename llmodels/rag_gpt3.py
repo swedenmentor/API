@@ -8,9 +8,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 #######################
 # Step 1: Initializing the LLM Model (GPT-3)   
 #######################
-llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120)
-print("LLM: ready")
 
+#callbacks=[StreamingStdOutCallbackHandler()]
+print("LLM: ready")
 #######################
 # Step 2: Building the Knowledge Base
 #######################
@@ -50,12 +50,13 @@ from langchain.vectorstores import Pinecone
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 
+
 text_field = 'text'  # field in metadata that contains text content                              
 vectorstore = Pinecone(index,
                        embed_model,
                        text_field)
 
-prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. For every sentence you answer, cite the source by including its URL inside square brackets. Do not include a source list.
+prompt_template = """Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question. For every fact in your answer, cite the source by including its URL inside square brackets. Do not include a source list.
 
 {context}
 
@@ -66,25 +67,15 @@ QA_PROMPT = PromptTemplate(
 )
 document_prompt = PromptTemplate(input_variables=["page_content", "source"], template="\n\nSource URL: {source}\n{page_content}")
 
-generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
-                                                        retriever=vectorstore.as_retriever(
-                                                            search_kwargs={"k": 4},
-                                                            search_type="mmr",
-                                                            score_threshold=0.3),
-                                                        combine_docs_chain_kwargs={
-                                                            'prompt': QA_PROMPT,
-                                                            'document_prompt': document_prompt
-                                                        },
-                                                        return_source_documents=True)
-print("generate_text(): ready")
-
 #######################
 # Result
 #######################
-#res = generate_text("What is deep convolutional nets?")
-#print(res)
-##
-#{
+#res = generate_text({"question": "What are the conditions for permanent residence permit in Sweden?", "chat_history": []})
+#res = llm.stream("What are the conditions for permanent residence permit in Sweden?")
+#res = generate_text.stream({"question": "How much does it cost to study a Master's program in Sweden?", "chat_history": []})
+#for word in res:
+#    continue
+# {
 #    'query': 'What is deep convolutional nets?',
 #    'result': " I don't know.",
 #    'source_documents': [
@@ -93,7 +84,7 @@ print("generate_text(): ready")
 #            meta_data='{"source":"...url...","title":"abc"}'
 #        )
 #    ]
-#}
+# }
 
 def text_transform(res):
     source_documents = []
@@ -120,6 +111,21 @@ def text_transform(res):
         'source_documents': source_documents
     }) """
 
+def stream_transform(res):
+    return json.dumps({
+        'choices': [ {
+                'index': 0,
+                'delta': {
+                    'content': res['answer']
+                },
+                'context': {
+                    'followup_questions': [],
+                    'data_points': []
+                },
+                'session_state': None
+            }]
+    })
+
 def build_prompt(messages):
     chat_history = []
     num_messages = len(messages)
@@ -134,3 +140,30 @@ def build_prompt(messages):
             num_char_in_chat_history += len(formatted_question) + len(formatted_response)
     #return {"question": messages[-1]['content'], "chat_history": chat_history}
     return {"question": messages[-1]['content'], "chat_history": []}
+
+from typing import AsyncIterable, Awaitable
+import asyncio
+async def wrap_done(fn: Awaitable, event: asyncio.Event):
+        """Wrap an awaitable with a event to signal when it's done or an exception is raised."""
+        try:
+            await fn
+        except Exception as e:
+            # TODO: handle exception
+            print(f"Caught exception: {e}")
+        finally:
+            # Signal the aiter to stop.
+            event.set()
+
+def get_generate_text(stream_callback):
+    llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120,streaming=True,callbacks=[stream_callback])
+    generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
+                                                        retriever=vectorstore.as_retriever(
+                                                            search_kwargs={"k": 4},
+                                                            search_type="mmr",
+                                                            score_threshold=0.3),
+                                                        combine_docs_chain_kwargs={
+                                                            'prompt': QA_PROMPT,
+                                                            'document_prompt': document_prompt
+                                                        },
+                                                        return_source_documents=False)
+    return generate_text
