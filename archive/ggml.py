@@ -18,9 +18,9 @@ generate_text = AutoModelForCausalLM.from_pretrained(model_id,
 
 print("LLM: ready")
 
-#import time
-#start_time = time.time()
-## 'pipeline' execution                                                                                                             
-#for word in generate_text("What is machine learning?", stream=True):
-#    print(word, end='', flush=True)
-#print("--- %s seconds ---" % (time.time() - start_time))
+import time
+start_time = time.time()
+# 'pipeline' execution                                                                                                             
+for word in generate_text("What is machine learning?", stream=True):
+    print(word, end='', flush=True)
+print("--- %s seconds ---" % (time.time() - start_time))

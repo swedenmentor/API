@@ -1,4 +1,4 @@
-from langchain.llms import OpenAI, HuggingFacePipeline
+from langchain.llms import OpenAI
 import os
 import json
 from dotenv import load_dotenv
@@ -9,7 +9,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Step 1: Initializing the LLM Model (GPT-3)   
 #######################
 
-#callbacks=[StreamingStdOutCallbackHandler()]
+from llmodels.gpt3 import build_llm
+#from llmodels.llama2 import build_llm
 print("LLM: ready")
 #######################
 # Step 2: Building the Knowledge Base
@@ -20,7 +21,7 @@ pinecone.init(
     api_key=os.environ.get('PINECONE_API_KEY'),
     environment=os.environ.get('PINECONE_ENV')
 )
-index_name = 'duhocsinh-se'  
+index_name = 'duhocsinh-se'
 index = pinecone.Index(index_name)
 print("Pinecone DB: ready")
 
@@ -141,21 +142,9 @@ def build_prompt(messages):
     #return {"question": messages[-1]['content'], "chat_history": chat_history}
     return {"question": messages[-1]['content'], "chat_history": []}
 
-from typing import AsyncIterable, Awaitable
-import asyncio
-async def wrap_done(fn: Awaitable, event: asyncio.Event):
-        """Wrap an awaitable with a event to signal when it's done or an exception is raised."""
-        try:
-            await fn
-        except Exception as e:
-            # TODO: handle exception
-            print(f"Caught exception: {e}")
-        finally:
-            # Signal the aiter to stop.
-            event.set()
 
 def get_generate_text(stream_callback):
-    llm = OpenAI(temperature=0, model_name='text-davinci-003',request_timeout=120,streaming=True,callbacks=[stream_callback])
+    llm = build_llm(stream_callback)
     generate_text = ConversationalRetrievalChain.from_llm(llm=llm,
                                                         retriever=vectorstore.as_retriever(
                                                             search_kwargs={"k": 4},
